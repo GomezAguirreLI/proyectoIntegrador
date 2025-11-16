@@ -36,19 +36,21 @@ class Vista:
         self.tarjeta_actual.place(relx=0.5, rely=0.5, anchor="center")
         
         # Títulos
-        Label(self.tarjeta_actual, text="Control Labs", font=("Arial", 40, "bold"), 
+        lbl_titulo=Label(self.tarjeta_actual, text="Control Labs", font=("Arial", 40, "bold"), 
               bg="white", fg="black").pack(pady=(0, 5))
-        Label(self.tarjeta_actual, text="iniciar sesión", font=("Arial", 20), 
+        lbl_iniciar=Label(self.tarjeta_actual, text="iniciar sesión", font=("Arial", 20), 
               bg="white", fg="gray").pack(pady=(0, 30))
 
         # Inputs
-        Label(self.tarjeta_actual, text="Ingresa tu usuario", font=("Arial", 15, "bold"), 
+        lbl_correo=Label(self.tarjeta_actual, text="Ingresa tu correo ", font=("Arial", 15, "bold"), 
               bg="white", fg="#4e8c64", anchor="w").pack(fill="x", pady=(10,0))
-        Entry(self.tarjeta_actual, font=("Arial", 15), bg="#e0e0e0", bd=0, width=30).pack(ipady=8, pady=5)
+        correo=StringVar()
+        txt_correo=Entry(self.tarjeta_actual, font=("Arial", 15), bg="#e0e0e0", bd=0, width=30, textvariable=correo ).pack(ipady=8, pady=5)
 
-        Label(self.tarjeta_actual, text="Ingresa tu contraseña", font=("Arial", 15, "bold"), 
+        lbl_contrasena=Label(self.tarjeta_actual, text="Ingresa tu contraseña", font=("Arial", 15, "bold"), 
               bg="white", fg="#4e8c64", anchor="w").pack(fill="x", pady=(15,0))
-        Entry(self.tarjeta_actual, font=("Arial", 15), bg="#e0e0e0", bd=0, show="*", width=30).pack(ipady=8, pady=5)
+        contrasena=StringVar()
+        txt_contrasena=Entry(self.tarjeta_actual, font=("Arial", 15), bg="#e0e0e0", bd=0, show="*", width=30,textvariable=contrasena).pack(ipady=8, pady=5)
 
         # Botones
         # NOTA: Aquí llamamos a self.mostrar_registro SIN paréntesis
@@ -57,6 +59,7 @@ class Vista:
                             command=self.mostrar_registro) 
         btn_signup.pack(fill="x", pady=(30, 10), ipady=5)
 
+       #Boton para ingresar a la aplicacion como tal
         btn_login = Button(self.tarjeta_actual, text="Log in", font=("Arial", 15, "bold"), 
                            bg="#3b6b4b", fg="white", bd=0, cursor="hand2")
         btn_login.pack(fill="x", ipady=5)

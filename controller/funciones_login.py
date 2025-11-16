@@ -53,3 +53,36 @@ class Funciones:
                         messagebox.showerror("Error Inesperado", f"REGISTRO fallido. Error: {error_tipo}")
                     return False
         return False  # Si no pasó las validaciones iniciales
+    
+    @staticmethod
+    def verificacion_login(correo, contrasena):
+        if correo == "":
+            messagebox.showerror(title="Error de Registro", message="Por favor ingrese su correo")
+            flag = False  
+        elif contrasena == "": 
+            messagebox.showerror(title="Error de Registro", message="Por favor ingrese su contraseña")
+            flag = False  
+        
+        if flag:
+            # Confirmación general
+            pregunta = messagebox.askquestion(
+                message=f"¿Está seguro que quieres ingresar estos datos?  {correo} {contrasena}",
+                icon="question", title="ALERTA"
+            )
+            if pregunta == "yes":
+                
+                exito, error_tipo = usuarios.Usuarios.login(correo, contrasena)
+                if exito:
+                    # Registro exitoso: devolver True (no mostrar messagebox aquí, lo hará Vista)
+                    return True
+                else:
+                    # Manejar errores con messagebox
+                    if error_tipo == "check_utd":
+                        messagebox.showerror("Correo Inválido", "NO SE ACEPTAN CORREOS QUE NO SEAN DE LA UTD")
+                    elif error_tipo == "duplicado":
+                        messagebox.showerror("Error de Registro", "DATOS YA USADOS EN LA BASE DE DATOS (El correo ya existe)")
+                    else:
+                        messagebox.showerror("Error Inesperado", f"REGISTRO fallido. Error: {error_tipo}")
+                    return False
+        return False  # Si no pasó las validaciones iniciales
+    

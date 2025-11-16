@@ -82,8 +82,26 @@ class Usuarios:
             usuario = cursor.fetchone() 
             
             if usuario:
-                return usuario 
+                return (True,usuario,None )
             else:
-                return None     
-        except Exception as e:
-            print(f"Error en login: {e}")
+                return (False,None,"El usuario no esta dado de alta")     
+        
+        except DbError as db_err:
+            # Capturamos el error de la Base de Datos
+            conexion.rollback()  # Deshacer cambios
+            print(f"[Error de BD] Código: {db_err.errno}, Mensaje: {db_err.msg}")
+
+            # Error 1062: Entrada Duplicada (Email ya existe)
+            if db_err.errno == 1062:
+                # Le decimos al controlador que fue un error "duplicado"
+                return (False, "duplicado")
+            
+            # Error 3819: Falla en la restricción "CHECK"
+            # (Esto solo funciona si tu tabla tiene: CHECK (email LIKE '%@utd.edu.mx'))
+            elif db_err.errno == 3819:
+                # Le decimos al controlador que fue un error "check_utd"
+                return (False, "check_utd")
+            
+            # Cualquier otro error de BD
+            else:
+                return (False, "otro_bd")
