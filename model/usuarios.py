@@ -82,9 +82,9 @@ class Usuarios:
             usuario = cursor.fetchone() 
             
             if usuario:
-                return (True,usuario,None )
+                return (True, usuario, None)
             else:
-                return (False,None,"El usuario no esta dado de alta")     
+                return (False, None, "El usuario no esta dado de alta")     
         
         except DbError as db_err:
             # Capturamos el error de la Base de Datos

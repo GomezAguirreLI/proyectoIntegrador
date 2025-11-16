@@ -56,33 +56,22 @@ class Funciones:
     
     @staticmethod
     def verificacion_login(correo, contrasena):
+        flag = True  # Inicializar flag
+        
         if correo == "":
-            messagebox.showerror(title="Error de Registro", message="Por favor ingrese su correo")
+            messagebox.showerror(title="Error de Login", message="Por favor ingrese su correo")
             flag = False  
         elif contrasena == "": 
-            messagebox.showerror(title="Error de Registro", message="Por favor ingrese su contraseña")
+            messagebox.showerror(title="Error de Login", message="Por favor ingrese su contraseña")
             flag = False  
         
         if flag:
-            # Confirmación general
-            pregunta = messagebox.askquestion(
-                message=f"¿Está seguro que quieres ingresar estos datos?  {correo} {contrasena}",
-                icon="question", title="ALERTA"
-            )
-            if pregunta == "yes":
-                
-                exito, error_tipo = usuarios.Usuarios.login(correo, contrasena)
-                if exito:
-                    # Registro exitoso: devolver True (no mostrar messagebox aquí, lo hará Vista)
-                    return True
-                else:
-                    # Manejar errores con messagebox
-                    if error_tipo == "check_utd":
-                        messagebox.showerror("Correo Inválido", "NO SE ACEPTAN CORREOS QUE NO SEAN DE LA UTD")
-                    elif error_tipo == "duplicado":
-                        messagebox.showerror("Error de Registro", "DATOS YA USADOS EN LA BASE DE DATOS (El correo ya existe)")
-                    else:
-                        messagebox.showerror("Error Inesperado", f"REGISTRO fallido. Error: {error_tipo}")
-                    return False
+            # Llamar a login y desempaquetar los tres valores
+            exito, usuario, error_msg = usuarios.Usuarios.login(correo, contrasena)
+            if exito:
+                return True  # Login exitoso
+            else:
+                # Mostrar error basado en error_msg
+                messagebox.showerror("Error de Login", error_msg or "Credenciales incorrectas o error inesperado")
+                return False
         return False  # Si no pasó las validaciones iniciales
-    

@@ -36,32 +36,43 @@ class Vista:
         self.tarjeta_actual.place(relx=0.5, rely=0.5, anchor="center")
         
         # Títulos
-        lbl_titulo=Label(self.tarjeta_actual, text="Control Labs", font=("Arial", 40, "bold"), 
-              bg="white", fg="black").pack(pady=(0, 5))
-        lbl_iniciar=Label(self.tarjeta_actual, text="iniciar sesión", font=("Arial", 20), 
-              bg="white", fg="gray").pack(pady=(0, 30))
+        lbl_titulo = Label(self.tarjeta_actual, text="Control Labs", font=("Arial", 40, "bold"), 
+              bg="white", fg="black")
+        lbl_titulo.pack(pady=(0, 5))
+        lbl_iniciar = Label(self.tarjeta_actual, text="iniciar sesión", font=("Arial", 20), 
+              bg="white", fg="gray")
+        lbl_iniciar.pack(pady=(0, 30))
 
         # Inputs
-        lbl_correo=Label(self.tarjeta_actual, text="Ingresa tu correo ", font=("Arial", 15, "bold"), 
-              bg="white", fg="#4e8c64", anchor="w").pack(fill="x", pady=(10,0))
-        correo=StringVar()
-        txt_correo=Entry(self.tarjeta_actual, font=("Arial", 15), bg="#e0e0e0", bd=0, width=30, textvariable=correo ).pack(ipady=8, pady=5)
+        lbl_correo = Label(self.tarjeta_actual, text="Ingresa tu correo", font=("Arial", 15, "bold"), 
+              bg="white", fg="#4e8c64", anchor="w")
+        lbl_correo.pack(fill="x", pady=(10,0))
+        correo = StringVar()
+        txt_correo = Entry(self.tarjeta_actual, font=("Arial", 15), bg="#e0e0e0", bd=0, width=30, textvariable=correo)
+        txt_correo.pack(ipady=8, pady=5)
 
-        lbl_contrasena=Label(self.tarjeta_actual, text="Ingresa tu contraseña", font=("Arial", 15, "bold"), 
-              bg="white", fg="#4e8c64", anchor="w").pack(fill="x", pady=(15,0))
-        contrasena=StringVar()
-        txt_contrasena=Entry(self.tarjeta_actual, font=("Arial", 15), bg="#e0e0e0", bd=0, show="*", width=30,textvariable=contrasena).pack(ipady=8, pady=5)
+        lbl_contrasena = Label(self.tarjeta_actual, text="Ingresa tu contraseña", font=("Arial", 15, "bold"), 
+              bg="white", fg="#4e8c64", anchor="w")
+        lbl_contrasena.pack(fill="x", pady=(15,0))
+        contrasena = StringVar()
+        txt_contrasena = Entry(self.tarjeta_actual, font=("Arial", 15), bg="#e0e0e0", bd=0, show="*", width=30, textvariable=contrasena)
+        txt_contrasena.pack(ipady=8, pady=5)
+
+        # Función interna para manejar el login y redirigir
+        def manejar_login():
+            exito = funciones_login.Funciones.verificacion_login(correo.get(), contrasena.get())
+            if exito:
+                messagebox.showinfo("Login Exitoso", "¡Bienvenido a Control Labs!")
+                self.mostrar_principal()  # Redirigir a pantalla principal (vacía)
 
         # Botones
-        # NOTA: Aquí llamamos a self.mostrar_registro SIN paréntesis
         btn_signup = Button(self.tarjeta_actual, text="Sign up", font=("Arial", 15, "bold"), 
                             bg="#4e8c64", fg="white", bd=0, cursor="hand2",
                             command=self.mostrar_registro) 
         btn_signup.pack(fill="x", pady=(30, 10), ipady=5)
 
-       #Boton para ingresar a la aplicacion como tal
         btn_login = Button(self.tarjeta_actual, text="Log in", font=("Arial", 15, "bold"), 
-                           bg="#3b6b4b", fg="white", bd=0, cursor="hand2")
+                           bg="#3b6b4b", fg="white", bd=0, cursor="hand2", command=manejar_login)
         btn_login.pack(fill="x", ipady=5)
 
     def mostrar_registro(self):
@@ -145,3 +156,21 @@ class Vista:
                             bg="white", fg="gray", bd=0, cursor="hand2",
                             command=self.mostrar_login)
         btn_volver.pack(fill="x", ipady=5)
+
+    def mostrar_principal(self):
+        """Pantalla principal vacía después del login exitoso (placeholder)"""
+        self.limpiar_pantalla()
+        
+        # Tarjeta Principal (vacía, solo título y botón de cerrar sesión)
+        self.tarjeta_actual = Frame(self.fondo, bg="white", padx=120, pady=120)
+        self.tarjeta_actual.place(relx=0.5, rely=0.5, anchor="center")
+        
+        # Título simple
+        Label(self.tarjeta_actual, text="Pantalla Principal", font=("Arial", 30, "bold"), 
+              bg="white", fg="black").pack(pady=(50, 20))
+        
+        # Botón para cerrar sesión (volver al login)
+        btn_cerrar_sesion = Button(self.tarjeta_actual, text="Cerrar Sesión", font=("Arial", 15, "bold"), 
+                                   bg="#4e8c64", fg="white", bd=0, cursor="hand2",
+                                   command=self.mostrar_login)
+        btn_cerrar_sesion.pack(pady=20)
