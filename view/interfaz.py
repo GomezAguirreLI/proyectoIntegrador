@@ -8,7 +8,7 @@ class Vista:
         # 1. Creamos la ventana PRINCIPAL aquí
         self.ventana = Tk()
         self.ventana.title("ControlLabs")
-        self.ventana.state('zoomed') # Pantalla completa
+        self.ventana.state('zoomed')  # Pantalla completa
 
         # Variable para controlar qué tarjeta se muestra
         self.tarjeta_actual = None
@@ -16,8 +16,6 @@ class Vista:
         # 2. Creamos el FONDO VERDE (una única vez)
         self.fondo = Frame(self.ventana, bg="#4e8c64")
         self.fondo.pack(fill="both", expand=True)
-
-     
 
         # 3. Mostramos el Login al arrancar
         self.mostrar_login()
@@ -77,44 +75,66 @@ class Vista:
         # --- CAMPOS DE REGISTRO ---
         
         # 1. Primer Nombre
-        primer_nombre=StringVar()
-        lbl_primer_nombre=Label(self.tarjeta_actual, text="Primer nombre", font=("Arial", 10, "bold"), 
-              bg="white", fg="#4e8c64", anchor="w").pack(fill="x", pady=(5,0))
-        txt_primer_nombre=Entry(self.tarjeta_actual, textvariable=primer_nombre,font=("Arial", 11), bg="#e0e0e0", bd=0, width=35).pack(ipady=5, pady=2)
+        primer_nombre = StringVar()
+        lbl_primer_nombre = Label(self.tarjeta_actual, text="Primer nombre", font=("Arial", 10, "bold"), 
+              bg="white", fg="#4e8c64", anchor="w")
+        lbl_primer_nombre.pack(fill="x", pady=(5,0))
+        txt_primer_nombre = Entry(self.tarjeta_actual, textvariable=primer_nombre, font=("Arial", 11), bg="#e0e0e0", bd=0, width=35)
+        txt_primer_nombre.pack(ipady=5, pady=2)
 
         # 2. Segundo Nombre
-        segundo_nombre=StringVar()
-        lbl_segundo_nombre=Label(self.tarjeta_actual, text="Segundo nombre (Opcional)", font=("Arial", 10, "bold"), 
-              bg="white", fg="#4e8c64", anchor="w").pack(fill="x", pady=(5,0))
-        txt_segundo_nombre=Entry(self.tarjeta_actual,textvariable=segundo_nombre, font=("Arial", 11), bg="#e0e0e0", bd=0, width=35).pack(ipady=5, pady=2)
+        segundo_nombre = StringVar()
+        lbl_segundo_nombre = Label(self.tarjeta_actual, text="Segundo nombre (Opcional)", font=("Arial", 10, "bold"), 
+              bg="white", fg="#4e8c64", anchor="w")
+        lbl_segundo_nombre.pack(fill="x", pady=(5,0))
+        txt_segundo_nombre = Entry(self.tarjeta_actual, textvariable=segundo_nombre, font=("Arial", 11), bg="#e0e0e0", bd=0, width=35)
+        txt_segundo_nombre.pack(ipady=5, pady=2)
 
         # 3. Apellido Paterno
-        apellido=StringVar()
-        lbl_apellido=Label(self.tarjeta_actual, text="Apellido Paterno", font=("Arial", 10, "bold"), 
-              bg="white", fg="#4e8c64", anchor="w").pack(fill="x", pady=(5,0))
-        txt_apellido=Entry(self.tarjeta_actual,textvariable=apellido, font=("Arial", 11), bg="#e0e0e0", bd=0, width=35).pack(ipady=5, pady=2)
+        apellido = StringVar()
+        lbl_apellido = Label(self.tarjeta_actual, text="Apellido Paterno", font=("Arial", 10, "bold"), 
+              bg="white", fg="#4e8c64", anchor="w")
+        lbl_apellido.pack(fill="x", pady=(5,0))
+        txt_apellido = Entry(self.tarjeta_actual, textvariable=apellido, font=("Arial", 11), bg="#e0e0e0", bd=0, width=35)
+        txt_apellido.pack(ipady=5, pady=2)
 
         # 4. Teléfono
-        telf=StringVar()
-        lbl_telf=Label(self.tarjeta_actual, text="Teléfono", font=("Arial", 10, "bold"), 
-              bg="white", fg="#4e8c64", anchor="w").pack(fill="x", pady=(5,0))
-        txt_telf=Entry(self.tarjeta_actual,textvariable=telf, font=("Arial", 11), bg="#e0e0e0", bd=0, width=35).pack(ipady=5, pady=2)
+        telf = StringVar()
+        lbl_telf = Label(self.tarjeta_actual, text="Teléfono", font=("Arial", 10, "bold"), 
+              bg="white", fg="#4e8c64", anchor="w")
+        lbl_telf.pack(fill="x", pady=(5,0))
+        txt_telf = Entry(self.tarjeta_actual, textvariable=telf, font=("Arial", 11), bg="#e0e0e0", bd=0, width=35)
+        txt_telf.pack(ipady=5, pady=2)
 
         # 5. Correo
-        correo=StringVar()
-        lbl_correo=Label(self.tarjeta_actual, text="Correo Electrónico", font=("Arial", 10, "bold"), 
-              bg="white", fg="#4e8c64", anchor="w").pack(fill="x", pady=(5,0))
-        txt_correo=Entry(self.tarjeta_actual,textvariable=correo, font=("Arial", 11), bg="#e0e0e0", bd=0, width=35).pack(ipady=5, pady=2)
+        correo = StringVar()
+        lbl_correo = Label(self.tarjeta_actual, text="Correo Electrónico", font=("Arial", 10, "bold"), 
+              bg="white", fg="#4e8c64", anchor="w")
+        lbl_correo.pack(fill="x", pady=(5,0))
+        txt_correo = Entry(self.tarjeta_actual, textvariable=correo, font=("Arial", 11), bg="#e0e0e0", bd=0, width=35)
+        txt_correo.pack(ipady=5, pady=2)
         
         # 6. Contraseña
-        contrasena=StringVar()
-        lbl_contrasena=Label(self.tarjeta_actual, text="Contraseña", font=("Arial", 10, "bold"), 
-              bg="white", fg="#4e8c64", anchor="w").pack(fill="x", pady=(5,0))
-        txt_contrasena=Entry(self.tarjeta_actual,textvariable=contrasena, font=("Arial", 11), bg="#e0e0e0", bd=0, show="*", width=35).pack(ipady=5, pady=2)
+        contrasena = StringVar()
+        lbl_contrasena = Label(self.tarjeta_actual, text="Contraseña", font=("Arial", 10, "bold"), 
+              bg="white", fg="#4e8c64", anchor="w")
+        lbl_contrasena.pack(fill="x", pady=(5,0))
+        txt_contrasena = Entry(self.tarjeta_actual, textvariable=contrasena, font=("Arial", 11), bg="#e0e0e0", bd=0, show="*", width=35)
+        txt_contrasena.pack(ipady=5, pady=2)
+
+        # Función interna para manejar el registro y redirigir
+        def manejar_registro():
+            exito = funciones_login.Funciones.verificacion_registro(
+                primer_nombre.get(), segundo_nombre.get(), apellido.get(), 
+                telf.get(), correo.get(), contrasena.get()
+            )
+            if exito:
+                messagebox.showinfo("Registro Exitoso", "¡Usuario registrado correctamente! Ahora puedes iniciar sesión.")
+                self.mostrar_login()  # Redirigir al login
 
         # Botón Guardar
         btn_guardar = Button(self.tarjeta_actual, text="Registrarme", font=("Arial", 12, "bold"), 
-                             bg="#4e8c64", fg="white", bd=0, cursor="hand2",command=lambda:funciones_login.Funciones.verificacion_registro(primer_nombre.get(),segundo_nombre.get(),apellido.get(),telf.get(),correo.get(),contrasena.get()))
+                             bg="#4e8c64", fg="white", bd=0, cursor="hand2", command=manejar_registro)
         btn_guardar.pack(fill="x", pady=(20, 5), ipady=5)
 
         # Botón Volver
