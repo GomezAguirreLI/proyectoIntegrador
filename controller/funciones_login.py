@@ -75,3 +75,12 @@ class Funciones:
                 messagebox.showerror("Error de Login", error_msg or "Credenciales incorrectas o error inesperado")
                 return False
         return False  # Si no pasó las validaciones iniciales
+    
+    @staticmethod
+    def limpiar_pantalla(ventana):
+        # Limpiar solo los widgets contenidos en el frame de fondo
+        for widget in ventana.fondo.winfo_children():
+            widget.destroy()
+
+    
+            
