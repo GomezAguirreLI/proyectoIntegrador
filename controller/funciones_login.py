@@ -69,7 +69,7 @@ class Funciones:
             # Llamar a login y desempaquetar los tres valores
             exito, usuario, error_msg = usuarios.Usuarios.login(correo, contrasena)
             if exito:
-                return True  # Login exitoso
+                return True,usuario # Login exitoso
             else:
                 # Mostrar error basado en error_msg
                 messagebox.showerror("Error de Login", error_msg or "Credenciales incorrectas o error inesperado")

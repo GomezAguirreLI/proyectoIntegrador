@@ -5,6 +5,9 @@ from tkinter import *
 from PIL import Image, ImageTk
 from view import constantes
 from .usuarios import interfaz_profes
+from .usuarios import interfaz_admin
+from tktooltip import ToolTip
+
 
 class Vista:
     def __init__(self, ventana):
@@ -55,6 +58,7 @@ class Vista:
         txt_correo = Entry(self.tarjeta_actual, font=("Arial", 15), bg="#e0e0e0", bd=0, width=30,
                            textvariable=correo)
         txt_correo.pack(ipady=8, pady=5)
+        txt_correo.focus()
 
         lbl_contrasena = Label(self.tarjeta_actual, text="Ingresa tu contraseña", font=("Arial", 15, "bold"),
                                bg="white", fg=constantes.color, anchor="w")
@@ -66,14 +70,20 @@ class Vista:
 
         # Función interna para manejar el login y redirigir
         def manejar_login():
-            exito = funciones_login.Funciones.verificacion_login(correo.get(), contrasena.get())
+            exito,usuario = funciones_login.Funciones.verificacion_login(correo.get(), contrasena.get())
             if exito:
-                messagebox.showinfo("Login Exitoso", "¡Bienvenido a Control Labs!")
-                # Primero limpiar la pantalla actual (login)
-                self.limpiar_pantalla()
-                # Cargar la interfaz de profesores dentro del mismo contenedor
-                # llamar a la función que construye el dashboard dentro de `self.fondo`
-                interfaz_profes.usuarios_profes(self.fondo)
+                if usuario[7]=="admin":
+                    up = interfaz_admin.UsuariosAdmin(self.fondo)
+                    up.mostrar_dashboard()
+                else:
+                
+                    messagebox.showinfo("Login Exitoso", "¡Bienvenido a Control Labs!")
+                    # Primero limpiar la pantalla actual (login)
+                    self.limpiar_pantalla()
+                    # Cargar la interfaz de profesores dentro del mismo contenedor
+                    # Instanciar la clase que maneja el dashboard y mostrar la vista
+                    up = interfaz_profes.UsuariosProfes(self.fondo,usuario)
+                    up.mostrar_dashboard()
                 
 
         # Botones
@@ -86,6 +96,17 @@ class Vista:
         btn_login = Button(self.tarjeta_actual, text="Log in", font=("Arial", 15, "bold"), 
                            bg="#3b6b4b", fg="white", bd=0, cursor="hand2", command=manejar_login)
         btn_login.pack(fill="x", ipady=5)
+
+        txt_correo.bind("<Return>",lambda e:txt_contrasena.focus())
+        txt_contrasena.bind("<Return>",lambda event: manejar_login())
+        txt_contrasena.bind("<Up>",lambda e:txt_correo.focus())
+        txt_correo.bind("<Down>",lambda e:txt_contrasena.focus())
+
+        ToolTip(txt_correo,msg="SOLO SE PERMITEN CORREOS DE LA UTD",delay=0.5)
+        ToolTip(txt_contrasena,msg="INGRESE SU CONTRASEÑA",delay=0.5)
+
+
+
 
     def mostrar_registro(self):
         self.limpiar_pantalla()
@@ -108,6 +129,7 @@ class Vista:
         txt_primer_nombre = Entry(self.tarjeta_actual, textvariable=primer_nombre, font=("Arial", 11),
                                   bg="#e0e0e0", bd=0, width=35)
         txt_primer_nombre.pack(ipady=5, pady=2)
+        txt_primer_nombre.focus()
 
         # 2. Segundo Nombre
         segundo_nombre = StringVar()
@@ -172,6 +194,11 @@ class Vista:
                             fg="gray", bd=0, cursor="hand2", command=self.mostrar_login)
         btn_volver.pack(fill="x", ipady=5)
 
-     
+        txt_primer_nombre.bind("<Return>",lambda e:txt_segundo_nombre.focus())
+        txt_segundo_nombre.bind("<Return>",lambda e:txt_apellido.focus())
+        txt_apellido.bind("<Return>",lambda e:txt_telf.focus()) 
+        txt_telf.bind("<Return>",lambda e:txt_correo.focus())
+        txt_correo.bind("<Return>",lambda e:txt_contrasena.focus())
+        txt_contrasena.bind("<Return>",lambda event: manejar_registro())
 
 
