@@ -365,58 +365,117 @@ class UsuariosProfes:
 
     def mostrar_laboratorios(self):
         self._clear_main()
-         # ----- TÍTULO -----
+
+        # ==================== TÍTULO ====================
         titulo = ctk.CTkLabel(
             self.main,
             text="Historial de reportes",
-            text_color="#32df57",
+            text_color="#000000",
             font=("Arial", 40, "bold")
         )
         titulo.pack(pady=25)
-        # ---------------- TABLA ----------------
+
+        lbl_h2 = ctk.CTkLabel(
+            self.main,
+            text="En esta área usted podrá visualizar los reportes que ha hecho",
+            text_color="#000000",
+            font=("Arial", 30)
+        )
+        lbl_h2.pack(pady=5)
+
+        # ==================== MENÚ DENTRO DEL FRAME ====================
+        
+        # --- Contenedor ---
+        menu_frame = ctk.CTkFrame(self.main, fg_color="#d9d9d9", corner_radius=10)
+        menu_frame.pack(fill="x", padx=40, pady=0)
+
+        # --- Popup menú de FECHA ---
+        popup_fecha = Menu(menu_frame, tearoff=0)
+        popup_fecha.add_command(label="Ordenar por último reporte")
+        popup_fecha.add_command(label="Ordenar por primer reporte")
+
+        def mostrar_popup_fecha(event):
+            popup_fecha.tk_popup(event.x_root, event.y_root)
+
+        btn_fecha = ctk.CTkButton(
+            menu_frame,
+            text="Organizar por fecha",
+            width=180,
+            height=38,
+            fg_color="#c7c7c7",
+            text_color="black"
+        )
+        btn_fecha.pack(side="left", padx=10, pady=5)
+        btn_fecha.bind("<Button-1>", mostrar_popup_fecha)
+
+        # --- Popup menú de EDIFICIO ---
+        popup_edificio = Menu(menu_frame, tearoff=0)
+        popup_edificio.add_command(label="Ordenar por edificio")
+        popup_edificio.add_command(label="Ordenar por laboratorio")
+
+        def mostrar_popup_edificio(event):
+            popup_edificio.tk_popup(event.x_root, event.y_root)
+
+        btn_edificio = ctk.CTkButton(
+            menu_frame,
+            text="Edificio",
+            width=180,
+            height=38,
+            fg_color="#c7c7c7",
+            text_color="black"
+        )
+        btn_edificio.pack(side="left", padx=10, pady=5)
+        btn_edificio.bind("<Button-1>", mostrar_popup_edificio)
+
+        # ==================== TABLA ====================
         tabla_frame = ctk.CTkFrame(self.main, fg_color="#e5e5e5", corner_radius=10)
         tabla_frame.pack(pady=20, padx=40, fill="both", expand=True)
 
-        # --------- ESTILOS DEL TREEVIEW PARA QUE COMBINE ---------
         style = ttk.Style()
-        style.configure("Treeview",
-                        background="#f2f2f2",
-                        foreground="black",
-                        rowheight=30,
-                        fieldbackground="#f2f2f2",
-                        font=("Arial", 13))
-        style.configure("Treeview.Heading",
-                        background="#c3c3c3",
-                        foreground="black",
-                        font=("Arial", 14, "bold"))
-        style.map("Treeview",
-                background=[("selected", "#32df57")])
+        style.configure(
+            "Treeview",
+            background="#f2f2f2",
+            foreground="black",
+            rowheight=30,
+            fieldbackground="#f2f2f2",
+            font=("Arial", 13)
+        )
+        style.configure(
+            "Treeview.Heading",
+            background="#c3c3c3",
+            foreground="black",
+            font=("Arial", 14, "bold")
+        )
+        style.map("Treeview", background=[("selected", "#32df57")])
 
-        # --------- CREAR TREEVIEW ---------
-        columnas = ("id_lab", "edificio", "piso", "idiomas", "cant_pc")
-
+        columnas = ("ID_Incident", "Date and hour", "Incident", "name", "building","Observations")
         tabla = ttk.Treeview(tabla_frame, columns=columnas, show="headings", height=8)
 
-        tabla.heading("id_lab", text="ID")
-        tabla.heading("edificio", text="Edificio")
-        tabla.heading("piso", text="Piso")
-        tabla.heading("idiomas", text="Idiomas")
-        tabla.heading("cant_pc", text="Cantidad de equipos")
+        tabla.heading("ID_Incident", text="ID_incident")
+        tabla.heading("Date and hour", text="date")
+        tabla.heading("Incident", text="Incident")
+        tabla.heading("name", text="name")
+        tabla.heading("building", text="building")
+        tabla.heading("Observations", text="Observations")
 
-        tabla.column("id_lab", width=80, anchor="center")
-        tabla.column("edificio", width=200, anchor="center")
-        tabla.column("piso", width=80, anchor="center")
-        tabla.column("idiomas", width=120, anchor="center")
-        tabla.column("cant_pc", width=180, anchor="center")
-         # ----- FRAME CONTENEDOR -----
+
+        tabla.column("ID_Incident", width=80, anchor="center")
+        tabla.column("Date and hour", width=200, anchor="center")
+        tabla.column("Incident", width=120, anchor="center")
+        tabla.column("name", width=80, anchor="center")
+        tabla.column("building", width=80, anchor="center")
+        tabla.column("Observations", width=80, anchor="center")
+
+
+        tabla.pack(fill="both", expand=True, padx=10, pady=10)
+
+        # ==================== BOTONES ====================
         contenedor = ctk.CTkFrame(self.main, fg_color="#f2f2f2", corner_radius=20)
         contenedor.pack(pady=20, padx=40, fill="both", expand=False)
 
-        # ================== BOTONES ==================
         botones = ctk.CTkFrame(contenedor, fg_color="transparent")
         botones.pack(pady=25)
 
-        tabla.pack(fill="both", expand=True, padx=10, pady=10)
         btn_actualizar = ctk.CTkButton(
             botones,
             text="Actualizar",
@@ -438,8 +497,33 @@ class UsuariosProfes:
             font=("Arial", 18, "bold")
         )
         btn_borrar.pack(side="left", padx=20)
+        datos_incidentes=funciones_incidentes.incidente.consulta_Tabla(self.usuario[0])
+        tabla.tag_configure("rojo", background="#f6b2b2")
+        tabla.tag_configure("verde", background="#ccffcc")
+        for item in tabla.get_children():
+            tabla.delete(item)
+        for fila in datos_incidentes:
+            # fila ahora = (nombre, edificio, piso, cant_pc)
+            id_incident = fila[0]
+            fecha = fila[1]
+            incidente = fila[2]
+            name = fila[3]
+            building = fila[4]
+            obs_raw = fila[5]  # 0 o 1
 
-    
+            # Transformación
+            observations =  "Process" if obs_raw == 0 else "END"
+           
+            tag = "rojo" if observations == "Process" else "verde"
+
+
+
+            # Insertamos con la observación convertida
+            tabla.insert("", "end", values=(id_incident, fecha, incidente, name, building, observations),tags=(tag,)
+            )
+           
+
+        
 
     def _build_sidebar(self):
 

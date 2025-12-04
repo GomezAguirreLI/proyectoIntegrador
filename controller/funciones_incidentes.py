@@ -1,6 +1,6 @@
 from tkinter import messagebox
 from model import incidentes
-
+from model import laboratorios
 class incidente:
     @staticmethod
     def insertar(id_usuario, incidente, id_laboratorio):
@@ -10,5 +10,12 @@ class incidente:
            messagebox.showinfo(message="..::REPORTE HECHO CON EXITO::..")
        else:
            messagebox.showerror(message="..::POR EL MOMENTO NO SE ES POSIBLE HACER UN REPORTE::..")
+
+
+    @staticmethod
+    def consulta_Tabla(id):
+        consulta_incidente=incidentes.incidentes.consulta_tabla(id)
+
+        return consulta_incidente
                   
   

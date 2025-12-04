@@ -52,6 +52,26 @@ class incidentes:
         except:
             return []
     
+    @staticmethod
+    def consulta_general():
+        try:
+            cursor.execute("SELECT  * FROM incidentes")
+            return cursor.fetchall()
+        except DbErrorS as e:
+            print(f"El error que te jode es {e}")
+            return []
+        
+    
+    
+    @staticmethod
+    def consulta_tabla(id):
+        try:
+            # La consulta correcta ahora tiene el formato: SELECT ... FROM ... JOIN ...
+            cursor.execute("SELECT i.id_incidente, i.fecha, i.incidente, l.nombre AS nombre_laboratorio, l.edificio, i.observaciones FROM incidentes AS i INNER JOIN laboratorios AS l ON i.id_laboratorio = l.id_lab WHERE i.id_usuario=%s;",(id,))
+            return cursor.fetchall()
+        except DbErrorS as e:
+            print(f"El error que te jode es {e}")
+            return []
 
 
 
