@@ -8,6 +8,7 @@ from tktooltip import ToolTip
 from datetime import date
 from controller import funciones_incidentes
 from PIL import Image
+from view  import interfaz
 
 import os
 
@@ -411,7 +412,7 @@ class UsuariosProfes:
         # --- Popup menú de EDIFICIO ---
         popup_edificio = Menu(menu_frame, tearoff=0)
         popup_edificio.add_command(label="Ordenar por edificio")
-        popup_edificio.add_command(label="Ordenar por laboratorio")
+        popup_edificio.add_command(label="Ordenar por laboratorio", command=lambda:self.ordenarEdificos(tabla))
 
         def mostrar_popup_edificio(event):
             popup_edificio.tk_popup(event.x_root, event.y_root)
@@ -521,8 +522,7 @@ class UsuariosProfes:
             # Insertamos con la observación convertida
             tabla.insert("", "end", values=(id_incident, fecha, incidente, name, building, observations),tags=(tag,)
             )
-           
-
+       
         
 
     def _build_sidebar(self):
@@ -567,7 +567,7 @@ class UsuariosProfes:
             font=("Arial",28),
             command=self.mostrar_laboratorios
         )
-        btn_labs.pack(padx=12, pady=20)
+        btn_labs.pack(padx=12, pady=50)
 
         btn_salir = ctk.CTkButton(
             self.sidebar,
@@ -577,9 +577,9 @@ class UsuariosProfes:
             text_color="white",
             corner_radius=8,
             font=("Arial",30),
-            command=lambda: messagebox.showinfo("Salir", "Sesión cerrada")
+            command=lambda:interfaz.Vista.mostrar_login(self.ventana)
         )
-        btn_salir.pack(padx=12, pady=(20, 30))
+        btn_salir.pack(padx=12, pady=(180, 30))
 
     def generar_reportes(self, datos):
 
@@ -785,6 +785,32 @@ class UsuariosProfes:
 
         nueva.mainloop()
 
+
+    def ordenarEdificos(self,tabla):
+            datos_incidentes=funciones_incidentes.incidente.consulta_Tabla_edifico(self.usuario[0])
+            tabla.tag_configure("rojo", background="#f6b2b2")
+            tabla.tag_configure("verde", background="#ccffcc")
+            for item in tabla.get_children():
+                tabla.delete(item)
+            for fila in datos_incidentes:
+                # fila ahora = (nombre, edificio, piso, cant_pc)
+                id_incident = fila[0]
+                fecha = fila[1]
+                incidente = fila[2]
+                name = fila[3]
+                building = fila[4]
+                obs_raw = fila[5]  # 0 o 1
+
+                # Transformación
+                observations =  "Process" if obs_raw == 0 else "END"
+            
+                tag = "rojo" if observations == "Process" else "verde"
+
+
+
+                # Insertamos con la observación convertida
+                tabla.insert("", "end", values=(id_incident, fecha, incidente, name, building, observations),tags=(tag,)
+                )
 
 
 

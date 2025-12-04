@@ -17,5 +17,11 @@ class incidente:
         consulta_incidente=incidentes.incidentes.consulta_tabla(id)
 
         return consulta_incidente
+    
+    def consulta_Tabla_edifico(id):
+        consulta_incidente=incidentes.incidentes.consulta_tabla_edifico(id)
+
+        return consulta_incidente
+                  
                   
   
