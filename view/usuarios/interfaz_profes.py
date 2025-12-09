@@ -263,8 +263,6 @@ class UsuariosProfes:
             # accesibilidad  |          
             #----------------
             txt_buscar.bind("<Return>",lambda event: buscar(id.get()))
-
-
        
     def mostrar_perfil(self):
         self._clear_main()
@@ -361,8 +359,6 @@ class UsuariosProfes:
         # Foco inicial
         txt_nombre.focus()
 
-
-
     def mostrar_laboratorios(self):
         self._clear_main()
 
@@ -391,8 +387,8 @@ class UsuariosProfes:
 
         # --- Popup menú de FECHA ---
         popup_fecha = Menu(menu_frame, tearoff=0)
-        popup_fecha.add_command(label="Ordenar por último reporte")
-        popup_fecha.add_command(label="Ordenar por primer reporte")
+        popup_fecha.add_command(label="Ordenar por último reporte",command=lambda:self.ordenarFechaDesc(tabla))
+        popup_fecha.add_command(label="Ordenar por primer reporte",command=lambda:self.ordenarFechaAsc(tabla))
 
         def mostrar_popup_fecha(event):
             popup_fecha.tk_popup(event.x_root, event.y_root)
@@ -405,13 +401,32 @@ class UsuariosProfes:
             fg_color="#c7c7c7",
             text_color="black"
         )
-        btn_fecha.pack(side="left", padx=10, pady=5)
+        btn_fecha.pack(side="left", padx=10)
         btn_fecha.bind("<Button-1>", mostrar_popup_fecha)
+
+        # --- Popup menú de estado ---
+        popup_estado = Menu(menu_frame, tearoff=0)
+        popup_estado.add_command(label="Order by in PROCESS",command=lambda:self.ordenarProcesso(tabla))
+        popup_estado.add_command(label="Order by ENDED",command=lambda:self.ordenarProcesso_terminado(tabla))
+
+        def mostrar_popup_estado(event):
+            popup_estado.tk_popup(event.x_root, event.y_root)
+
+        btn_estado = ctk.CTkButton(
+            menu_frame,
+            text="STATE",
+            width=180,
+            height=38,
+            fg_color="#c7c7c7",
+            text_color="black"
+        )
+        btn_estado.pack(side="left", padx=10, expand=True)
+        btn_estado.bind("<Button-1>", mostrar_popup_estado)
 
         # --- Popup menú de EDIFICIO ---
         popup_edificio = Menu(menu_frame, tearoff=0)
-        popup_edificio.add_command(label="Ordenar por edificio")
-        popup_edificio.add_command(label="Ordenar por laboratorio", command=lambda:self.ordenarEdificos(tabla))
+        popup_edificio.add_command(label="Ordenar por edificio",command=lambda:self.ordenarEdificio(tabla))
+        popup_edificio.add_command(label="Ordenar por laboratorio", command=lambda:self.ordenarlab(tabla))
 
         def mostrar_popup_edificio(event):
             popup_edificio.tk_popup(event.x_root, event.y_root)
@@ -424,7 +439,7 @@ class UsuariosProfes:
             fg_color="#c7c7c7",
             text_color="black"
         )
-        btn_edificio.pack(side="left", padx=10, pady=5)
+        btn_edificio.pack(side="left", padx=10)
         btn_edificio.bind("<Button-1>", mostrar_popup_edificio)
 
         # ==================== TABLA ====================
@@ -522,8 +537,6 @@ class UsuariosProfes:
             tabla.insert("", "end", values=(id_incident, fecha, incidente, name, building, observations),tags=(tag,)
             )
        
-        
-
     def _build_sidebar(self):
 
         btn_inicio = ctk.CTkButton(
@@ -772,8 +785,8 @@ class UsuariosProfes:
             text_color="white",
             corner_radius=12,
             width=180,
-            command=lambda: funciones_incidentes.incidente.insertar(
-                self.usuario[0],
+            command=lambda: self.insertar_reporte(
+                nueva,
                 txt_incidente.get("1.0", "end-1c"),
                 id
             )
@@ -783,13 +796,18 @@ class UsuariosProfes:
 
 
         nueva.mainloop()
-    def insertar_incidentes(self):
-        pass
-        #funciones_incidentes.incidente.insertar
 
-
-    def ordenarEdificos(self,tabla):
-            datos_incidentes=funciones_incidentes.incidente.consulta_Tabla_edifico(self.usuario[0])
+    def insertar_reporte(self,ventana,txt_incidente,id):
+        exito=funciones_incidentes.incidente.insertar(
+            self.usuario[0],
+                txt_incidente,
+                id
+        )
+        if exito:
+            ventana.destroy()
+            
+    def ordenarlab(self,tabla):
+            datos_incidentes=funciones_incidentes.incidente.consulta_Tabla_lab(self.usuario[0])
             tabla.tag_configure("rojo", background="#f6b2b2")
             tabla.tag_configure("verde", background="#ccffcc")
             for item in tabla.get_children():
@@ -814,7 +832,139 @@ class UsuariosProfes:
                 tabla.insert("", "end", values=(id_incident, fecha, incidente, name, building, observations),tags=(tag,)
                 )
 
+    def ordenarEdificio(self,tabla):
+        datos_incidentes=funciones_incidentes.incidente.consulta_Tabla_edificio(self.usuario[0])
+        tabla.tag_configure("rojo", background="#f6b2b2")
+        tabla.tag_configure("verde", background="#ccffcc")
+        for item in tabla.get_children():
+            tabla.delete(item)
+        for fila in datos_incidentes:
+            # fila ahora = (nombre, edificio, piso, cant_pc)
+            id_incident = fila[0]
+            fecha = fila[1]
+            incidente = fila[2]
+            name = fila[3]
+            building = fila[4]
+            obs_raw = fila[5]  # 0 o 1
 
+                # Transformación
+            observations =  "Process" if obs_raw == 0 else "END"
+            
+            tag = "rojo" if observations == "Process" else "verde"
+
+
+
+                # Insertamos con la observación convertida
+            tabla.insert("", "end", values=(id_incident, fecha, incidente, name, building, observations),tags=(tag,)
+                )
+
+    def ordenarFechaAsc(self,tabla):
+        #PRIMER REPORTE
+        datos_incidentes=funciones_incidentes.incidente.consulta_Tabla_fechaAsc(self.usuario[0])
+        tabla.tag_configure("rojo", background="#f6b2b2")
+        tabla.tag_configure("verde", background="#ccffcc")
+        for item in tabla.get_children():
+            tabla.delete(item)
+        for fila in datos_incidentes:
+            # fila ahora = (nombre, edificio, piso, cant_pc)
+            id_incident = fila[0]
+            fecha = fila[1]
+            incidente = fila[2]
+            name = fila[3]
+            building = fila[4]
+            obs_raw = fila[5]  # 0 o 1
+
+                # Transformación
+            observations =  "Process" if obs_raw == 0 else "END"
+            
+            tag = "rojo" if observations == "Process" else "verde"
+
+
+
+                # Insertamos con la observación convertida
+            tabla.insert("", "end", values=(id_incident, fecha, incidente, name, building, observations),tags=(tag,)
+                )
+
+    def ordenarFechaDesc(self,tabla):
+        #PRIMER REPORTE
+        datos_incidentes=funciones_incidentes.incidente.consulta_Tabla_fechaDesc(self.usuario[0])
+        tabla.tag_configure("rojo", background="#f6b2b2")
+        tabla.tag_configure("verde", background="#ccffcc")
+        for item in tabla.get_children():
+            tabla.delete(item)
+        for fila in datos_incidentes:
+            # fila ahora = (nombre, edificio, piso, cant_pc)
+            id_incident = fila[0]
+            fecha = fila[1]
+            incidente = fila[2]
+            name = fila[3]
+            building = fila[4]
+            obs_raw = fila[5]  # 0 o 1
+
+                # Transformación
+            observations =  "Process" if obs_raw == 0 else "END"
+            
+            tag = "rojo" if observations == "Process" else "verde"
+
+
+
+                # Insertamos con la observación convertida
+            tabla.insert("", "end", values=(id_incident, fecha, incidente, name, building, observations),tags=(tag,)
+                )
+
+    def ordenarProcesso(self,tabla):
+        #PRIMER REPORTE
+        datos_incidentes=funciones_incidentes.incidente.consulta_Tabla_Proceso(self.usuario[0])
+        tabla.tag_configure("rojo", background="#f6b2b2")
+        tabla.tag_configure("verde", background="#ccffcc")
+        for item in tabla.get_children():
+            tabla.delete(item)
+        for fila in datos_incidentes:
+            # fila ahora = (nombre, edificio, piso, cant_pc)
+            id_incident = fila[0]
+            fecha = fila[1]
+            incidente = fila[2]
+            name = fila[3]
+            building = fila[4]
+            obs_raw = fila[5]  # 0 o 1
+
+                # Transformación
+            observations =  "Process" if obs_raw == 0 else "END"
+            
+            tag = "rojo" if observations == "Process" else "verde"
+
+
+
+                # Insertamos con la observación convertida
+            tabla.insert("", "end", values=(id_incident, fecha, incidente, name, building, observations),tags=(tag,)
+                )
+
+    def ordenarProcesso_terminado(self,tabla):
+        #PRIMER REPORTE
+        datos_incidentes=funciones_incidentes.incidente.consulta_Tabla_Proceso_terminado(self.usuario[0])
+        tabla.tag_configure("rojo", background="#f6b2b2")
+        tabla.tag_configure("verde", background="#ccffcc")
+        for item in tabla.get_children():
+            tabla.delete(item)
+        for fila in datos_incidentes:
+            # fila ahora = (nombre, edificio, piso, cant_pc)
+            id_incident = fila[0]
+            fecha = fila[1]
+            incidente = fila[2]
+            name = fila[3]
+            building = fila[4]
+            obs_raw = fila[5]  # 0 o 1
+
+                # Transformación
+            observations =  "Process" if obs_raw == 0 else "END"
+            
+            tag = "rojo" if observations == "Process" else "verde"
+
+
+
+                # Insertamos con la observación convertida
+            tabla.insert("", "end", values=(id_incident, fecha, incidente, name, building, observations),tags=(tag,)
+                )
 
     # =====================================================
     #   LIMPIAR ÁREA PRINCIPAL  
