@@ -67,7 +67,7 @@ class incidentes:
     def consulta_tabla(id):
         try:
             # La consulta correcta ahora tiene el formato: SELECT ... FROM ... JOIN ...
-            cursor.execute("SELECT i.id_incidente, i.fecha, i.incidente, l.nombre AS nombre_laboratorio, l.edificio, i.observaciones FROM incidentes AS i INNER JOIN laboratorios AS l ON i.id_laboratorio = l.id_lab WHERE i.id_usuario=%s;",(id,))
+            cursor.execute("SELECT  * FROM vista_incidentes WHERE id_usuario=%s;",(id,))
             return cursor.fetchall()
         except DbErrorS as e:
             print(f"El error que te jode es {e}")
@@ -75,15 +75,82 @@ class incidentes:
         
 
     @staticmethod
-    def consulta_tabla_edifico(id):
+    def consulta_tabla_lab(id):
         try:
             # La consulta correcta ahora tiene el formato: SELECT ... FROM ... JOIN ...
-            cursor.execute("SELECT i.id_incidente, i.fecha, i.incidente, l.nombre AS nombre_laboratorio, l.edificio, i.observaciones FROM incidentes AS i INNER JOIN laboratorios AS l ON i.id_laboratorio = l.id_lab WHERE i.id_usuario=%s ORDER BY nombre_laboratorio ASC;",(id,))
+            cursor.execute("SELECT  * FROM vista_incidentes WHERE id_usuario=%s ORDER BY nombre_laboratorio ASC;",(id,))
             return cursor.fetchall()
         except DbErrorS as e:
             print(f"El error que te jode es {e}")
             return []
+
+
+
+    @staticmethod
+    def consulta_tabla_edifico(id):
+        try:
+            # La consulta correcta ahora tiene el formato: SELECT ... FROM ... JOIN ...
+            cursor.execute("SELECT  * FROM vista_incidentes WHERE id_usuario=%s ORDER BY edificio ASC;",(id,))
+            return cursor.fetchall()
+        except DbErrorS as e:
+            print(f"El error que te jode es {e}")
+            return []        
+
+
+
+    @staticmethod
+    def consulta_tabla_fehca_Asc(id):
+        try:
+            # La consulta correcta ahora tiene el formato: SELECT ... FROM ... JOIN ...
+            #DESC SERIA EL ULTIMO REPORTE 
+            #ASC SERIA EL PRIMER REPORTE
+            cursor.execute("SELECT  * FROM vista_incidentes WHERE id_usuario=%s ORDER BY fecha ASC;",(id,))
+            return cursor.fetchall()
+        except DbErrorS as e:
+            print(f"El error que te jode es {e}")
+            return [] 
+
+    
+    @staticmethod
+    def consulta_tabla_fehca_Desc(id):
+        try:
+            # La consulta correcta ahora tiene el formato: SELECT ... FROM ... JOIN ...
+            #DESC SERIA EL ULTIMO REPORTE 
+            #ASC SERIA EL PRIMER REPORTE
+            cursor.execute("SELECT  * FROM vista_incidentes WHERE id_usuario=%s ORDER BY fecha DESC;",(id,))
+            return cursor.fetchall()
+        except DbErrorS as e:
+            print(f"El error que te jode es {e}")
+            return []   
+
+
+
+    @staticmethod
+    def consulta_tabla_proceso(id):
+        try:
+            # La consulta correcta ahora tiene el formato: SELECT ... FROM ... JOIN ...
+            #DESC SERIA SOLUCIONADO 
+            #ASC SERIA EN PROCESO
+            cursor.execute("SELECT  * FROM vista_incidentes WHERE id_usuario=%s ORDER BY observaciones ASC;",(id,))
+            return cursor.fetchall()
+        except DbErrorS as e:
+            print(f"El error que te jode es {e}")
+            return []   
         
+
+    @staticmethod
+    def consulta_tabla_proceso_terminado(id):
+        try:
+            # La consulta correcta ahora tiene el formato: SELECT ... FROM ... JOIN ...
+            #DESC SERIA SOLUCIONADO 
+            #ASC SERIA EN PROCESO
+            cursor.execute("SELECT  * FROM vista_incidentes WHERE id_usuario=%s ORDER BY observaciones DESC;",(id,))
+            return cursor.fetchall()
+        except DbErrorS as e:
+            print(f"El error que te jode es {e}")
+            return []       
+
+            
 
 
 
