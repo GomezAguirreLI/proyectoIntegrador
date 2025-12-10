@@ -12,6 +12,8 @@ from view  import interfaz
 
 import os
 
+#de la rama vieja a l main
+
 class UsuariosProfes:
     """
     Clase que construye el dashboard para los profesores.
@@ -45,6 +47,11 @@ class UsuariosProfes:
             light_image=Image.open(os.path.join(IMAGES_DIR,"historial.png")),
             dark_image=Image.open(os.path.join(IMAGES_DIR,"historial.png")),
             size=(80,90)
+        )
+        self.img_usuario_dos=ctk.CTkImage(
+            light_image=Image.open(os.path.join(IMAGES_DIR,"usuario2.png")),
+            dark_image=Image.open(os.path.join(IMAGES_DIR,"usuario2.png")),
+            size=(200,200)
         )
 
 
@@ -267,97 +274,166 @@ class UsuariosProfes:
     def mostrar_perfil(self):
         self._clear_main()
 
-    # ----- TÍTULO -----
+        # ----- TÍTULO -----
         titulo = ctk.CTkLabel(
             self.main,
-            text="Perfil del Usuario",
-            text_color="#32df57",
-            font=("Arial", 40, "bold")
+            text="Edit Profile",
+            text_color="#0F0F0F",
+            font=("Arial", 45, "bold")
         )
-        titulo.pack(pady=25)
+        titulo.pack(pady=25, anchor="w", padx=40)
 
-        # ----- FRAME CONTENEDOR -----
-        contenedor = ctk.CTkFrame(self.main, fg_color="#f2f2f2", corner_radius=20)
-        contenedor.pack(pady=20, padx=40, fill="both", expand=False)
-
-        # ================= ENTRIES ESTILO UNIFICADO =================
-
-        entry_style = {
-            "width": 450,
-            "height": 45,
-            "font": ("Arial", 16),
-            "fg_color": "#f7f5f2",          # Fondo hueso
-            "text_color": "black",          # Texto negro
-            "placeholder_text_color": "#8e8e8e"
-        }
-
-        # Nombre
-        lbl_nombre = ctk.CTkLabel(contenedor, text="Nombre completo:", font=("Arial", 18))
-        lbl_nombre.pack(anchor="w", padx=20, pady=(20, 5))
-
-        txt_nombre = ctk.CTkEntry(
-            contenedor,
-            placeholder_text="Ingresa tu nombre",
-            **entry_style
+        scroll = ctk.CTkScrollableFrame(
+            master=self.main,
+            height=600,
+            width=600,
+            fg_color="#ffffff"
         )
-        txt_nombre.pack(padx=20, pady=5)
-
-        # Correo
-        lbl_correo = ctk.CTkLabel(contenedor, text="Correo:", font=("Arial", 18))
-        lbl_correo.pack(anchor="w", padx=20, pady=(15, 5))
-
-        txt_correo = ctk.CTkEntry(
-            contenedor,
-            placeholder_text="correo@ejemplo.com",
-            **entry_style
+        scroll.pack(padx=20, pady=20, fill="both", expand=True)
+        
+        # ----------------------------------------------------
+        # SECCIÓN 1: HEADER DEL PERFIL (Imagen, Upload, Info)
+        # ----------------------------------------------------
+        
+        # 1. Contenedor principal para la cabecera (Imagen y texto de subida)
+        # Lo empaquetamos en el scroll frame y lo anclamos al oeste (izquierda)
+        user_header_frame = ctk.CTkFrame(scroll, fg_color="transparent")
+        user_header_frame.pack(pady=30, padx=40, anchor="w") # Espacio debajo del título
+        
+        # === Columna 0: Imagen de Usuario (lbl_user) ===
+        lbl_user = ctk.CTkLabel(
+            user_header_frame,
+            image=self.img_usuario_dos,
+            text="" # Asegúrate de que no tenga texto
         )
-        txt_correo.pack(padx=20, pady=5)
-
-        # Teléfono
-        lbl_tel = ctk.CTkLabel(contenedor, text="Teléfono:", font=("Arial", 18))
-        lbl_tel.pack(anchor="w", padx=20, pady=(15, 5))
-
-        txt_tel = ctk.CTkEntry(
-            contenedor,
-            placeholder_text="10 dígitos",
-            **entry_style
+        # Usamos grid para posicionarla en la columna 0, abarcando 2 filas (rowspan=2)
+        lbl_user.grid(row=0, column=0, rowspan=2, padx=(0, 20), sticky="n") # sticky="n" para alinear arriba
+        
+        # === Columna 1: Texto de Subida y Recomendación ===
+        
+        # Botón/Etiqueta para "Upload new photo"
+        lbl_user_name = ctk.CTkLabel(
+            user_header_frame,
+            text=f"{self.usuario[1]} {self.usuario[2]}",
+            text_color="#1C1D1E", # Un color azul para indicar que es clickeable
+            font=("Arial", 40, "bold"),
+            cursor="hand2" # Indica que es interactivo
         )
-        txt_tel.pack(padx=20, pady=5)
+        lbl_user_name.grid(row=0, column=1, sticky="w", pady=(0, 5)) 
 
-        # ================== BOTONES ==================
-        botones = ctk.CTkFrame(contenedor, fg_color="transparent")
-        botones.pack(pady=25)
-
-        btn_actualizar = ctk.CTkButton(
-            botones,
-            text="Actualizar",
-            fg_color="#32df57",
-            hover_color="#28c94b",
-            width=180,
-            height=45,
-            font=("Arial", 18, "bold")
+        # Texto de recomendación (800x800, formatos)
+        lbl_recommendation = ctk.CTkLabel(
+            user_header_frame,
+            text="Here you will be available to modify your personal info.",
+            text_color="#888888",
+            font=("Arial", 25)
         )
-        btn_actualizar.pack(side="left", padx=20)
+        lbl_recommendation.grid(row=1, column=1, sticky="w") 
 
-        btn_borrar = ctk.CTkButton(
-            botones,
-            text="Borrar perfil",
-            fg_color="#b33c3c",
-            hover_color="#912f2f",
-            width=180,
-            height=45,
-            font=("Arial", 18, "bold")
+        # ----------------------------------------------------
+        # SECCIÓN 2: HEADER "Personal Info" + Edit button
+        # ----------------------------------------------------
+
+        header_info_frame = ctk.CTkFrame(scroll, fg_color="transparent")
+        header_info_frame.pack(fill="x", padx=40, pady=(40, 5))
+
+        # Título a la izquierda
+        titulo_info = ctk.CTkLabel(
+            header_info_frame,
+            text="Personal Info",
+            font=("Arial", 22, "bold"),
+            text_color="black"
         )
-        btn_borrar.pack(side="left", padx=20)
+        titulo_info.grid(row=0, column=0, sticky="w")
 
-        # ================== ENTER ENTRE CAMPOS ==================
+        # Botón EDIT a la derecha
+        btn_edit = ctk.CTkButton(
+            header_info_frame,
+            text="Edit",
+            width=80,
+            height=35,
+            corner_radius=12,
+            fg_color="#FFFFFF",
+            text_color="#000000",
+            border_color="#D0D0D0",
+            border_width=2,
+        )
+        btn_edit.grid(row=0, column=1, sticky="e")
 
-        txt_nombre.bind("<Return>", lambda e: txt_correo.focus())
-        txt_correo.bind("<Return>", lambda e: txt_tel.focus())
-        txt_tel.bind("<Return>", lambda e: btn_actualizar.invoke())
+        # Fuerza el espacio entre izquierda y derecha
+        header_info_frame.grid_columnconfigure(0, weight=1)
 
-        # Foco inicial
-        txt_nombre.focus()
+        # Separador debajo
+        separador = ctk.CTkFrame(scroll, height=2, fg_color="#E0E0E0")
+        separador.pack(fill="x", padx=40, pady=(0, 20))
+        # ====== CONTENEDOR PRINCIPAL DE PERSONAL INFO ======
+        info_frame = ctk.CTkFrame(
+            scroll,
+            fg_color="#F8F8F8",
+            corner_radius=20
+        )
+        info_frame.pack(fill="x", padx=40, pady=25)
+
+       
+
+        # ======== SECCIÓN DE CAMPOS ========
+        content = ctk.CTkFrame(info_frame, fg_color="transparent")
+        content.grid(row=2, column=0, padx=20, pady=20, sticky="w")
+
+        # ---- Columna 0: Full Name ----
+        lbl_fullname_title = ctk.CTkLabel(
+            content,
+            text="Full Name",
+            text_color="#7A7A7A",
+            font=("Arial", 14)
+        )
+        lbl_fullname_title.grid(row=0,padx=150,column=0, sticky="w")
+
+        lbl_fullname_value = ctk.CTkLabel(
+            content,
+            text=f"{self.usuario[1]} {self.usuario[2]}",
+            font=("Arial", 16, "bold"),
+            text_color="#1C1D1E"
+        )
+        lbl_fullname_value.grid(row=1,padx=150, column=0,sticky="w", pady=(5, 0))
+
+        # ---- Columna 1: Email ----
+        lbl_email_title = ctk.CTkLabel(
+            content,
+            text="Email",
+            text_color="#7A7A7A",
+            font=("Arial", 14)
+        )
+        lbl_email_title.grid(row=0, column=1, sticky="w", padx=(250, 0))
+
+        lbl_email_value = ctk.CTkLabel(
+            content,
+            text=self.usuario[5],  # email
+            font=("Arial", 16, "bold"),
+            text_color="#1C1D1E"
+        )
+        lbl_email_value.grid(row=1, column=1, sticky="w", padx=(200, 0), pady=(5, 0))
+
+        # ---- Columna 2: Phone ----
+        lbl_phone_title = ctk.CTkLabel(
+            content,
+            text="Phone",
+            text_color="#7A7A7A",
+            font=("Arial", 14)
+        )
+        lbl_phone_title.grid(row=0, column=2, sticky="w", padx=(200, 0))
+
+        lbl_phone_value = ctk.CTkLabel(
+            content,
+            text=self.usuario[4],  # telefono
+            font=("Arial", 16, "bold"),
+            text_color="#1C1D1E"
+        )
+        lbl_phone_value.grid(row=1, column=2, sticky="w", padx=(200, 0), pady=(5, 0))
+
+
+        
+        
 
     def mostrar_laboratorios(self):
         self._clear_main()
