@@ -110,21 +110,21 @@ class UsuariosProfes:
             # ---------------- TITULO ----------------
             titulo = ctk.CTkLabel(
                 scroll,
-                text="Bitacora",
+                text="Journal",
                 text_color="#000000",
                 font=("Arial", 50, "bold")
             )
             titulo.pack(pady=20)
             lbl_h2=ctk.CTkLabel(
                 scroll,
-                text="Seleccionar Laboratorio",
+                text="Select Laboratory",
                 font=("Arial", 30, "bold"),
                 text_color="#132301"
             )
             lbl_h2.pack(pady=5)
             lbl_text=ctk.CTkLabel(
                 scroll,
-                text="En esta area usted podra poner un reporte acerca \n de algun equipo dañado dentro la Universidad tecnologica de Durango",
+                text="In this area, you can submit a report about damaged \n equipment within the Technological University of Durango.",
                 font=("Arial",25),
                 text_color="#132301"
             )
@@ -132,7 +132,7 @@ class UsuariosProfes:
             # ------------ CONTENEDOR BARRA DE BUSQUEDA ------------
             contenedor = ctk.CTkFrame(scroll, fg_color="transparent")
             contenedor.pack(pady=10)
-
+            #DEBERIA SER POR NOMBRE PERO YA NO SE SI MOVERLE MAS
             lbl_buscar = ctk.CTkLabel(
                 contenedor,
                 text="Busca por ID",
@@ -185,16 +185,14 @@ class UsuariosProfes:
                 corner_radius=20,
                 width=120,
                 height=40,
-                command=lambda:consultar_seleccion()
+                command=lambda:self.consultar_seleccion(tabla,"g")
             )
             btn_reportar.pack(side="left", padx=10)
             #hover botton
 
 
             # ---------------- TABLA ----------------
-            # FALTA AGREGAR COLORES SI EL LABORATORIO ESTA REPORTADO YA CON INCIDENTES
-            # ROJO - Urgente
-            # AMARILLO - PRECAUCIÓN
+          
             tabla_frame = ctk.CTkFrame(scroll, fg_color="#e5e5e5", corner_radius=10)
             tabla_frame.pack(pady=20, padx=40, fill="both", expand=True)
 
@@ -218,10 +216,10 @@ class UsuariosProfes:
 
             tabla = ttk.Treeview(tabla_frame, columns=columnas, show="headings", height=8)
 
-            tabla.heading("Nombre", text="nombre")
-            tabla.heading("edificio", text="Edificio")
-            tabla.heading("piso", text="Piso")
-            tabla.heading("Cantidad de computadoras", text="Cantidad de equipos")
+            tabla.heading("Nombre", text="Name")
+            tabla.heading("edificio", text="Building")
+            tabla.heading("piso", text="Floor")
+            tabla.heading("Cantidad de computadoras", text="Number of equipment")
 
             tabla.column("Nombre", width=80, anchor="center")
             tabla.column("edificio", width=200, anchor="center")
@@ -253,25 +251,15 @@ class UsuariosProfes:
                     for fila in datos:
                         # fila ahora = (nombre, edificio, piso, cant_pc)
                         tabla.insert("", "end", values=fila)
-            def consultar_seleccion():
-                seleccion = tabla.focus()  # obtiene el ID interno del ítem seleccionado
-
-                if not seleccion:
-                    messagebox.showwarning("Advertencia", "Debes seleccionar un laboratorio.")
-                    return
-
-                datos = tabla.item(seleccion, "values")  # obtiene la tupla de valores
-
-                # datos será algo como: ("Lab A1", "Pesado 1", "2", "35")
-
-                self.generar_reportes(datos)   # mandas la tupla a tu método
+           
 
                         #----------------
             # accesibilidad  |          
             #----------------
             txt_buscar.bind("<Return>",lambda event: buscar(id.get()))
-       
+
     def mostrar_perfil(self):
+        
         self._clear_main()
 
         # ----- TÍTULO -----
@@ -430,11 +418,7 @@ class UsuariosProfes:
             text_color="#1C1D1E"
         )
         lbl_phone_value.grid(row=1, column=2, sticky="w", padx=(200, 0), pady=(5, 0))
-
-
-        
-        
-
+            
     def mostrar_laboratorios(self):
         self._clear_main()
 
@@ -574,7 +558,9 @@ class UsuariosProfes:
             hover_color="#28c94b",
             width=180,
             height=45,
-            font=("Arial", 18, "bold")
+            font=("Arial", 18, "bold"),
+            command=lambda:self.consultar_seleccion(tabla,"a")
+            
         )
         btn_actualizar.pack(side="left", padx=20)
 
@@ -585,6 +571,7 @@ class UsuariosProfes:
             hover_color="#912f2f",
             width=180,
             height=45,
+            command=lambda:self.consultar_seleccion(tabla,"b"),
             font=("Arial", 18, "bold")
         )
         btn_borrar.pack(side="left", padx=20)
@@ -671,7 +658,6 @@ class UsuariosProfes:
 
     def generar_reportes(self, datos):
 
-        from datetime import date
 
         MAX_CHARS = 150
 
@@ -872,6 +858,236 @@ class UsuariosProfes:
 
 
         nueva.mainloop()
+    
+    def actualizarReporte(self,datos):
+
+        MAX_CHARS = 150
+
+        # Crear NUEVA ventana independiente
+        nueva = Tk()
+        nueva.title("Actualizar incidente")
+        nueva.geometry("500x600")
+        nueva.resizable(False, False)
+
+        scroll = ctk.CTkScrollableFrame(
+            master=nueva,
+            height=600,
+            width=600,
+            fg_color="#ffffff"
+        )
+        scroll.pack(padx=20, pady=20, fill="both", expand=True)
+
+        # Obtener ID del laboratorio
+        id_tupla = laboratorios.laboratorios.buscar_id(datos)
+        id = id_tupla[0]
+
+        # ========= TITULO =========
+        titulo = ctk.CTkLabel(
+            scroll,
+            text="Formulario de reporte",
+            font=("Arial", 22, "bold"),
+            text_color="black"
+        )
+        titulo.pack(pady=15)
+
+        lbl_h2 = ctk.CTkLabel(
+            scroll,
+            text=f"Del laboratorio {id}",
+            font=("Arial", 20),
+            text_color="black"
+        )
+        lbl_h2.pack(pady=2)
+
+        # ========= Nombre =========
+        lbl_h3 = ctk.CTkLabel(
+            scroll,
+            text="Nombre del laboratorio:",
+            font=("Arial", 20),
+            text_color="black"
+        )
+        lbl_h3.pack(pady=1)
+
+        txt_nombre = ctk.CTkEntry(
+            scroll,
+            width=len(datos[0]) * 10,
+            text_color="#000000",
+            corner_radius=5,
+            fg_color="#ffffff"
+        )
+        txt_nombre.pack(pady=5)
+        txt_nombre.insert(0, f"{datos[0]}")
+        txt_nombre.configure(state="readonly")
+
+        # ========= Edificio =========
+        lbl_h4 = ctk.CTkLabel(
+            scroll,
+            text="Edificio:",
+            font=("Arial", 20),
+            text_color="black"
+        )
+        lbl_h4.pack(pady=1)
+
+        txt_edificio = ctk.CTkEntry(
+            scroll,
+            width=len(datos[1]) * 10,
+            text_color="#000000",
+            corner_radius=5,
+            fg_color="#ffffff"
+        )
+        txt_edificio.pack(pady=5)
+        txt_edificio.insert(0, f"{datos[1]}")
+        txt_edificio.configure(state="readonly")
+
+        # ========= Piso =========
+        lbl_h5 = ctk.CTkLabel(
+            scroll,
+            text="Piso:",
+            font=("Arial", 20),
+            text_color="black"
+        )
+        lbl_h5.pack(pady=1)
+
+        txt_piso = ctk.CTkEntry(
+            scroll,
+            width=len(datos[2]) * 10,
+            text_color="#000000",
+            corner_radius=5,
+            fg_color="#ffffff"
+        )
+        txt_piso.pack(pady=5)
+        txt_piso.insert(0, f"{datos[2]}")
+        txt_piso.configure(state="readonly")
+
+        # ========= Fecha =========
+        fecha = date.today().strftime("%Y-%m-%d")
+
+        lbl_h6 = ctk.CTkLabel(
+            scroll,
+            text="Fecha del reporte:",
+            font=("Arial", 20),
+            text_color="black"
+        )
+        lbl_h6.pack(pady=1)
+
+        txt_fecha = ctk.CTkEntry(
+            scroll,
+            width=len(fecha) * 10,
+            text_color="#000000",
+            corner_radius=5,
+            fg_color="#ffffff"
+        )
+        txt_fecha.pack(pady=5)
+        txt_fecha.insert(0, fecha)
+        txt_fecha.configure(state="readonly")
+
+        # ========= Pregunta =========
+        lbl = ctk.CTkLabel(
+            scroll,
+            text="Describe el incidente:",
+            font=("Arial", 16),
+            text_color="#000000"
+        )
+        lbl.pack(pady=5)
+
+        # ========= Contador =========
+        lbl_contador = ctk.CTkLabel(
+            scroll,
+            text=f"0 / {MAX_CHARS} caracteres",
+            text_color="black",
+            font=("Arial", 12)
+        )
+        lbl_contador.pack(pady=5)
+
+        # ========= TextArea =========
+        txt_incidente = ctk.CTkTextbox(
+            scroll,
+            width=420,
+            height=200,
+            corner_radius=10,
+            fg_color="#ffffff",
+            text_color="#000000",
+            border_color="#000000",
+            border_width=4,
+        )
+        txt_incidente.pack(pady=10)
+        txt_incidente.focus()
+
+        # ========= Funciones para límite y contador =========
+        def actualizar_contador(event=None):
+            texto = txt_incidente.get("1.0", "end-1c")
+
+            # Corta el exceso
+            if len(texto) > MAX_CHARS:
+                txt_incidente.delete(f"1.0 + {MAX_CHARS} chars", "end")
+                texto = txt_incidente.get("1.0", "end-1c")
+
+            lbl_contador.configure(
+                text=f"{len(texto)} / {MAX_CHARS} caracteres"
+            )
+
+        def limitar_caracteres(event=None):
+            texto = txt_incidente.get("1.0", "end-1c")
+            if len(texto) == MAX_CHARS:
+                lbl_contador.configure(text_color="red")
+            else:
+                lbl_contador.configure(text_color="black")
+
+            if len(texto) >= MAX_CHARS:
+                return "break"   # bloquea la tecla
+
+        # Bind correctos
+        txt_incidente.bind("<KeyRelease>", actualizar_contador)
+        txt_incidente.bind("<<Paste>>", actualizar_contador)
+        txt_incidente.bind("<Key>", limitar_caracteres)
+            
+        # ========= Botón enviar =========
+        btn_enviar = ctk.CTkButton(
+            scroll,
+            text="Enviar reporte",
+            fg_color="#32df57",
+            hover_color="#28c94b",
+            text_color="white",
+            corner_radius=12,
+            width=180,
+            command=lambda: self.insertar_reporte(
+                nueva,
+                txt_incidente.get("1.0", "end-1c"),
+                id
+            )
+
+        )
+        btn_enviar.pack(pady=15)
+
+
+        nueva.mainloop()
+
+    
+    
+    def consultar_seleccion(self,tabla,op):
+                seleccion = tabla.focus()  # obtiene el ID interno del ítem seleccionado
+
+                if not seleccion:
+                    messagebox.showwarning("Warning", "You must select a laboratory")
+                    return
+
+                datos = tabla.item(seleccion, "values")  # obtiene la tupla de valores
+
+                # datos será algo como: ("Lab A1", "Pesado 1", "2", "35")
+                if op=="g":
+                 self.generar_reportes(datos)
+                elif op=="a":
+                  self.actualizarReporte(datos)
+                elif op=="b":
+                   funciones_incidentes.incidente.borrarIncidente(datos)
+    
+    
+    # =====================================================
+    #   LIMPIAR ÁREA PRINCIPAL  
+    # =====================================================
+
+    def _clear_main(self):
+        for w in self.main.winfo_children():
+            w.destroy()
 
     def insertar_reporte(self,ventana,txt_incidente,id):
         exito=funciones_incidentes.incidente.insertar(
@@ -881,171 +1097,3 @@ class UsuariosProfes:
         )
         if exito:
             ventana.destroy()
-            
-    def ordenarlab(self,tabla):
-            datos_incidentes=funciones_incidentes.incidente.consulta_Tabla_lab(self.usuario[0])
-            tabla.tag_configure("rojo", background="#f6b2b2")
-            tabla.tag_configure("verde", background="#ccffcc")
-            for item in tabla.get_children():
-                tabla.delete(item)
-            for fila in datos_incidentes:
-                # fila ahora = (nombre, edificio, piso, cant_pc)
-                id_incident = fila[0]
-                fecha = fila[1]
-                incidente = fila[2]
-                name = fila[3]
-                building = fila[4]
-                obs_raw = fila[5]  # 0 o 1
-
-                # Transformación
-                observations =  "Process" if obs_raw == 0 else "END"
-            
-                tag = "rojo" if observations == "Process" else "verde"
-
-
-
-                # Insertamos con la observación convertida
-                tabla.insert("", "end", values=(id_incident, fecha, incidente, name, building, observations),tags=(tag,)
-                )
-
-    def ordenarEdificio(self,tabla):
-        datos_incidentes=funciones_incidentes.incidente.consulta_Tabla_edificio(self.usuario[0])
-        tabla.tag_configure("rojo", background="#f6b2b2")
-        tabla.tag_configure("verde", background="#ccffcc")
-        for item in tabla.get_children():
-            tabla.delete(item)
-        for fila in datos_incidentes:
-            # fila ahora = (nombre, edificio, piso, cant_pc)
-            id_incident = fila[0]
-            fecha = fila[1]
-            incidente = fila[2]
-            name = fila[3]
-            building = fila[4]
-            obs_raw = fila[5]  # 0 o 1
-
-                # Transformación
-            observations =  "Process" if obs_raw == 0 else "END"
-            
-            tag = "rojo" if observations == "Process" else "verde"
-
-
-
-                # Insertamos con la observación convertida
-            tabla.insert("", "end", values=(id_incident, fecha, incidente, name, building, observations),tags=(tag,)
-                )
-
-    def ordenarFechaAsc(self,tabla):
-        #PRIMER REPORTE
-        datos_incidentes=funciones_incidentes.incidente.consulta_Tabla_fechaAsc(self.usuario[0])
-        tabla.tag_configure("rojo", background="#f6b2b2")
-        tabla.tag_configure("verde", background="#ccffcc")
-        for item in tabla.get_children():
-            tabla.delete(item)
-        for fila in datos_incidentes:
-            # fila ahora = (nombre, edificio, piso, cant_pc)
-            id_incident = fila[0]
-            fecha = fila[1]
-            incidente = fila[2]
-            name = fila[3]
-            building = fila[4]
-            obs_raw = fila[5]  # 0 o 1
-
-                # Transformación
-            observations =  "Process" if obs_raw == 0 else "END"
-            
-            tag = "rojo" if observations == "Process" else "verde"
-
-
-
-                # Insertamos con la observación convertida
-            tabla.insert("", "end", values=(id_incident, fecha, incidente, name, building, observations),tags=(tag,)
-                )
-
-    def ordenarFechaDesc(self,tabla):
-        #PRIMER REPORTE
-        datos_incidentes=funciones_incidentes.incidente.consulta_Tabla_fechaDesc(self.usuario[0])
-        tabla.tag_configure("rojo", background="#f6b2b2")
-        tabla.tag_configure("verde", background="#ccffcc")
-        for item in tabla.get_children():
-            tabla.delete(item)
-        for fila in datos_incidentes:
-            # fila ahora = (nombre, edificio, piso, cant_pc)
-            id_incident = fila[0]
-            fecha = fila[1]
-            incidente = fila[2]
-            name = fila[3]
-            building = fila[4]
-            obs_raw = fila[5]  # 0 o 1
-
-                # Transformación
-            observations =  "Process" if obs_raw == 0 else "END"
-            
-            tag = "rojo" if observations == "Process" else "verde"
-
-
-
-                # Insertamos con la observación convertida
-            tabla.insert("", "end", values=(id_incident, fecha, incidente, name, building, observations),tags=(tag,)
-                )
-
-    def ordenarProcesso(self,tabla):
-        #PRIMER REPORTE
-        datos_incidentes=funciones_incidentes.incidente.consulta_Tabla_Proceso(self.usuario[0])
-        tabla.tag_configure("rojo", background="#f6b2b2")
-        tabla.tag_configure("verde", background="#ccffcc")
-        for item in tabla.get_children():
-            tabla.delete(item)
-        for fila in datos_incidentes:
-            # fila ahora = (nombre, edificio, piso, cant_pc)
-            id_incident = fila[0]
-            fecha = fila[1]
-            incidente = fila[2]
-            name = fila[3]
-            building = fila[4]
-            obs_raw = fila[5]  # 0 o 1
-
-                # Transformación
-            observations =  "Process" if obs_raw == 0 else "END"
-            
-            tag = "rojo" if observations == "Process" else "verde"
-
-
-
-                # Insertamos con la observación convertida
-            tabla.insert("", "end", values=(id_incident, fecha, incidente, name, building, observations),tags=(tag,)
-                )
-
-    def ordenarProcesso_terminado(self,tabla):
-        #PRIMER REPORTE
-        datos_incidentes=funciones_incidentes.incidente.consulta_Tabla_Proceso_terminado(self.usuario[0])
-        tabla.tag_configure("rojo", background="#f6b2b2")
-        tabla.tag_configure("verde", background="#ccffcc")
-        for item in tabla.get_children():
-            tabla.delete(item)
-        for fila in datos_incidentes:
-            # fila ahora = (nombre, edificio, piso, cant_pc)
-            id_incident = fila[0]
-            fecha = fila[1]
-            incidente = fila[2]
-            name = fila[3]
-            building = fila[4]
-            obs_raw = fila[5]  # 0 o 1
-
-                # Transformación
-            observations =  "Process" if obs_raw == 0 else "END"
-            
-            tag = "rojo" if observations == "Process" else "verde"
-
-
-
-                # Insertamos con la observación convertida
-            tabla.insert("", "end", values=(id_incident, fecha, incidente, name, building, observations),tags=(tag,)
-                )
-
-    # =====================================================
-    #   LIMPIAR ÁREA PRINCIPAL  
-    # =====================================================
-
-    def _clear_main(self):
-        for w in self.main.winfo_children():
-            w.destroy()

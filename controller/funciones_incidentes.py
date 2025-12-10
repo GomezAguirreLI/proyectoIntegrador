@@ -56,5 +56,9 @@ class incidente:
 
         return consulta_incidente
 
+    @staticmethod
+    def borrarIncidente(datos):
+        for fila in datos:
+         print(f"{fila}")
 
                   
