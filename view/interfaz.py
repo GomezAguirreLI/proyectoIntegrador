@@ -1,202 +1,201 @@
+import customtkinter as ctk
 from tkinter import messagebox
 from controller import funciones_login
+from view import constantes, usuarios
+from PIL import Image
 import os
-from tkinter import *
-from PIL import Image, ImageTk
-from view import constantes
-from .usuarios import interfaz_profes
-from .usuarios import interfaz_admin
-
 
 class Vista:
     def __init__(self, ventana):
-        # 1. Usar la ventana que nos pasan (no crear otra)
         self.ventana = ventana
-        self.ventana.title("ControlLabs")
+        self.ventana.title("ControlLabs System")
+        self.ventana.geometry("1100x700")
+        
+        # Configuración de rutas de imagen
+        BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        IMAGES_DIR = os.path.join(BASE_DIR, "view", "imagenes")
+        
+        self.logo_utd = None
         try:
-            self.ventana.state('zoomed')  # Pantalla completa cuando esté disponible
-        except Exception:
-            pass
+            # Cargamos el logo de la UTD (asegúrate que el archivo exista)
+            img_path = os.path.join(IMAGES_DIR, "logo_utd.png")
+            if os.path.exists(img_path):
+                # Un tamaño más grande para el login
+                self.logo_utd = ctk.CTkImage(Image.open(img_path), size=(180, 80)) 
+        except Exception as e:
+            print(f"Error cargando logo: {e}")
 
-        # Variable para controlar qué tarjeta se muestra
-        self.tarjeta_actual = None
-
-        # 2. Creamos el FONDO VERDE (una única vez)
-        self.fondo = Frame(self.ventana, bg=constantes.color)
+        # Frame Principal (Fondo Verde)
+        self.fondo = ctk.CTkFrame(self.ventana, fg_color=constantes.COLOR_PRIMARY)
         self.fondo.pack(fill="both", expand=True)
 
-        # 3. Mostramos el Login al arrancar
-        self.mostrar_login()
+        # Muestra la pantalla de Login por defecto
+        self.login()
 
-    def limpiar_pantalla(self):
-        # Limpiar solo los widgets contenidos en el frame de fondo
+    def _limpiar_frame(self):
         for widget in self.fondo.winfo_children():
             widget.destroy()
 
-    def mostrar_login(self):
-        # Limpiar solo los widgets del frame fondo (no destruir la ventana completa)
-        self.limpiar_pantalla()
-
-        # Tarjeta de Login
-        self.tarjeta_actual = Frame(self.fondo, bg="white", padx=120, pady=120)
-        self.tarjeta_actual.place(relx=0.5, rely=0.5, anchor="center")
-
-        # Títulos
-        lbl_titulo = Label(self.tarjeta_actual, text="Control Labs", font=("Arial", 40, "bold"),
-                           bg="white", fg="black")
-        lbl_titulo.pack(pady=(0, 5))
-        lbl_iniciar = Label(self.tarjeta_actual, text="iniciar sesión", font=("Arial", 20),
-                            bg="white", fg="gray")
-        lbl_iniciar.pack(pady=(0, 30))
-
-        # Inputs
-        lbl_correo = Label(self.tarjeta_actual, text="Ingresa tu correo", font=("Arial", 15, "bold"),
-                           bg="white", fg=constantes.color, anchor="w")
-        lbl_correo.pack(fill="x", pady=(10, 0))
-        correo = StringVar()
-        txt_correo = Entry(self.tarjeta_actual, font=("Arial", 15), bg="#e0e0e0", bd=0, width=30,
-                           textvariable=correo)
-        txt_correo.pack(ipady=8, pady=5)
-        txt_correo.focus()
-
-        lbl_contrasena = Label(self.tarjeta_actual, text="Ingresa tu contraseña", font=("Arial", 15, "bold"),
-                               bg="white", fg=constantes.color, anchor="w")
-        lbl_contrasena.pack(fill="x", pady=(15, 0))
-        contrasena = StringVar()
-        txt_contrasena = Entry(self.tarjeta_actual, font=("Arial", 15), bg="#e0e0e0", bd=0, show="*", width=30,
-                               textvariable=contrasena)
-        txt_contrasena.pack(ipady=8, pady=5)
-
-        # Función interna para manejar el login y redirigir
-        def manejar_login():
-            exito,usuario = funciones_login.Funciones.verificacion_login(correo.get(), contrasena.get())
-            if exito:
-                if usuario[7]=="admin":
-                    up = interfaz_admin.UsuariosAdmin(self.fondo)
-                    up.mostrar_dashboard()
-                else:
-                
-                    messagebox.showinfo("Login Exitoso", "¡Bienvenido a Control Labs!")
-                    # Primero limpiar la pantalla actual (login)
-                    self.limpiar_pantalla()
-                    # Cargar la interfaz de profesores dentro del mismo contenedor
-                    # Instanciar la clase que maneja el dashboard y mostrar la vista
-                    up = interfaz_profes.UsuariosProfes(self.fondo,usuario)
-                    up.mostrar_dashboard()
-                
-
-        # Botones
-        btn_signup = Button(self.tarjeta_actual, text="Sign up", font=("Arial", 15, "bold"), 
-                            bg=constantes.color, fg="white", bd=0, cursor="hand2",
-                            command=self.mostrar_registro)
-    
-        btn_signup.pack(fill="x", pady=(30, 10), ipady=5)
-
-        btn_login = Button(self.tarjeta_actual, text="Log in", font=("Arial", 15, "bold"), 
-                           bg="#3b6b4b", fg="white", bd=0, cursor="hand2", command=manejar_login)
-        btn_login.pack(fill="x", ipady=5)
-
-        txt_correo.bind("<Return>",lambda e:txt_contrasena.focus())
-        txt_contrasena.bind("<Return>",lambda event: manejar_login())
-        txt_contrasena.bind("<Up>",lambda e:txt_correo.focus())
-        txt_correo.bind("<Down>",lambda e:txt_contrasena.focus())
-
+    def login(self):
+        self._limpiar_frame()
         
+        # --- CUADRO BLANCO (LOGIN CARD) ---
+        # Hacemos el cuadro más ancho (width=500) y alto
+        self.frame_login = ctk.CTkFrame(self.fondo, fg_color="white", width=500, height=650, corner_radius=20)
+        self.frame_login.place(relx=0.5, rely=0.5, anchor="center")
+        # Evita que el frame se encoja a sus widgets internos
+        self.frame_login.pack_propagate(False)
 
+        # 1. LOGO UTD
+        if self.logo_utd:
+            label_logo = ctk.CTkLabel(self.frame_login, text="", image=self.logo_utd)
+            label_logo.pack(pady=(50, 20))
 
+        # 2. TÍTULO PRINCIPAL
+        titulo = ctk.CTkLabel(self.frame_login, text="ControlLabs", font=("Roboto", 36, "bold"), text_color=constantes.COLOR_PRIMARY)
+        titulo.pack(pady=(0, 10))
 
+        subtitulo = ctk.CTkLabel(self.frame_login, text="Welcome Back! Please sign in.", font=("Roboto", 16), text_color="gray")
+        subtitulo.pack(pady=(0, 40))
 
-    def mostrar_registro(self):
-        self.limpiar_pantalla()
+        # 3. CAMPOS DE ENTRADA
+        # Usamos un frame interno para un mejor control del padding horizontal
+        input_frame = ctk.CTkFrame(self.frame_login, fg_color="transparent")
+        input_frame.pack(fill="x", padx=50)
 
-        # Tarjeta de Registro (Con menos padding vertical para que quepan todos los campos)
-        self.tarjeta_actual = Frame(self.fondo, bg="white", padx=80, pady=40)
-        self.tarjeta_actual.place(relx=0.5, rely=0.5, anchor="center")
+        # Email
+        lbl_email = ctk.CTkLabel(input_frame, text="Email Address", font=("Roboto", 14, "bold"), text_color="#555")
+        lbl_email.pack(anchor="w", pady=(0, 5))
+        txt_email = ctk.CTkEntry(input_frame, width=400, height=45, font=("Roboto", 14), border_color="#E0E0E0", corner_radius=10)
+        txt_email.pack(fill="x", pady=(0, 25))
 
-        # Títulos
-        Label(self.tarjeta_actual, text="Registro", font=("Arial", 30, "bold"), bg="white", fg="black").pack(
-            pady=(0, 20))
+        # Password
+        lbl_password = ctk.CTkLabel(input_frame, text="Password", font=("Roboto", 14, "bold"), text_color="#555")
+        lbl_password.pack(anchor="w", pady=(0, 5))
+        txt_password = ctk.CTkEntry(input_frame, width=400, height=45, font=("Roboto", 14), show="*", border_color="#E0E0E0", corner_radius=10)
+        txt_password.pack(fill="x", pady=(0, 10))
 
-        # --- CAMPOS DE REGISTRO ---
-
-        # 1. Primer Nombre
-        primer_nombre = StringVar()
-        lbl_primer_nombre = Label(self.tarjeta_actual, text="Primer nombre", font=("Arial", 10, "bold"),
-                                  bg="white", fg=constantes.color, anchor="w")
-        lbl_primer_nombre.pack(fill="x", pady=(5, 0))
-        txt_primer_nombre = Entry(self.tarjeta_actual, textvariable=primer_nombre, font=("Arial", 11),
-                                  bg="#e0e0e0", bd=0, width=35)
-        txt_primer_nombre.pack(ipady=5, pady=2)
-        txt_primer_nombre.focus()
-
-        # 2. Segundo Nombre
-        segundo_nombre = StringVar()
-        lbl_segundo_nombre = Label(self.tarjeta_actual, text="Segundo nombre (Opcional)",
-                                   font=("Arial", 10, "bold"), bg="white", fg=constantes.color, anchor="w")
-        lbl_segundo_nombre.pack(fill="x", pady=(5, 0))
-        txt_segundo_nombre = Entry(self.tarjeta_actual, textvariable=segundo_nombre, font=("Arial", 11),
-                                   bg="#e0e0e0", bd=0, width=35)
-        txt_segundo_nombre.pack(ipady=5, pady=2)
-
-        # 3. Apellido Paterno
-        apellido = StringVar()
-        lbl_apellido = Label(self.tarjeta_actual, text="Apellido Paterno", font=("Arial", 10, "bold"),
-                             bg="white", fg=constantes.color, anchor="w")
-        lbl_apellido.pack(fill="x", pady=(5, 0))
-        txt_apellido = Entry(self.tarjeta_actual, textvariable=apellido, font=("Arial", 11), bg="#e0e0e0", bd=0,
-                             width=35)
-        txt_apellido.pack(ipady=5, pady=2)
-
-        # 4. Teléfono
-        telf = StringVar()
-        lbl_telf = Label(self.tarjeta_actual, text="Teléfono", font=("Arial", 10, "bold"), bg="white",
-                         fg=constantes.color, anchor="w")
-        lbl_telf.pack(fill="x", pady=(5, 0))
-        txt_telf = Entry(self.tarjeta_actual, textvariable=telf, font=("Arial", 11), bg="#e0e0e0", bd=0, width=35)
-        txt_telf.pack(ipady=5, pady=2)
-
-        # 5. Correo
-        correo = StringVar()
-        lbl_correo = Label(self.tarjeta_actual, text="Correo Electrónico", font=("Arial", 10, "bold"),
-                           bg="white", fg=constantes.color, anchor="w")
-        lbl_correo.pack(fill="x", pady=(5, 0))
-        txt_correo = Entry(self.tarjeta_actual, textvariable=correo, font=("Arial", 11), bg="#e0e0e0", bd=0,
-                           width=35)
-        txt_correo.pack(ipady=5, pady=2)
-
-        # 6. Contraseña
-        contrasena = StringVar()
-        lbl_contrasena = Label(self.tarjeta_actual, text="Contraseña", font=("Arial", 10, "bold"), bg="white",
-                               fg=constantes.color, anchor="w")
-        lbl_contrasena.pack(fill="x", pady=(5, 0))
-        txt_contrasena = Entry(self.tarjeta_actual, textvariable=contrasena, font=("Arial", 11), bg="#e0e0e0", bd=0,
-                               show="*", width=35)
-        txt_contrasena.pack(ipady=5, pady=2)
-
-        # Función interna para manejar el registro y redirigir
-        def manejar_registro():
-            exito = funciones_login.Funciones.verificacion_registro(
-                primer_nombre.get(), segundo_nombre.get(), apellido.get(), telf.get(), correo.get(), contrasena.get()
-            )
+        # 4. BOTÓN DE LOGIN
+        def manejar_login():
+            email = txt_email.get().strip()
+            contra = txt_password.get().strip()
+            
+            # Llamamos al controlador
+            exito, usuario_data = funciones_login.Funciones.verificacion_login(email, contra)
+            
             if exito:
-                messagebox.showinfo("Registro Exitoso", "¡Usuario registrado correctamente! Ahora puedes iniciar sesión.")
-                self.mostrar_login()  # Redirigir al login
+                # usuario_data: (id, nom, seg_nom, ape, telf, email, rol)
+                rol = usuario_data[6]
+                
+                # Redirección según el rol
+                if rol == 'admin':
+                    from view.usuarios import interfaz_admin
+                    interfaz_admin.UsuariosAdmin(self.fondo)
+                elif rol == 'usuario':
+                    from view.usuarios import interfaz_profes
+                    interfaz_profes.UsuariosProfes(self.fondo, usuario_data)
+                else:
+                    messagebox.showerror("Error", f"Rol desconocido: {rol}")
 
-        # Botón Guardar
-        btn_guardar = Button(self.tarjeta_actual, text="Registrarme", font=("Arial", 12, "bold"), bg=constantes.color,
-                             fg="white", bd=0, cursor="hand2", command=manejar_registro)
-        btn_guardar.pack(fill="x", pady=(20, 5), ipady=5)
+        btn_login = ctk.CTkButton(self.frame_login, text="SIGN IN", fg_color=constantes.COLOR_ACCENT, hover_color="#b87608", width=400, height=50, font=("Roboto", 16, "bold"), corner_radius=10, command=manejar_login)
+        btn_login.pack(pady=(30, 20), padx=50)
 
-        # Botón Volver
-        btn_volver = Button(self.tarjeta_actual, text="← Volver al Login", font=("Arial", 9, "bold"), bg="white",
-                            fg="gray", bd=0, cursor="hand2", command=self.mostrar_login)
-        btn_volver.pack(fill="x", ipady=5)
+        # 5. PIE DE PÁGINA (CREAR CUENTA)
+        footer_frame = ctk.CTkFrame(self.frame_login, fg_color="transparent")
+        footer_frame.pack(pady=(10, 30))
 
-        txt_primer_nombre.bind("<Return>",lambda e:txt_segundo_nombre.focus())
-        txt_segundo_nombre.bind("<Return>",lambda e:txt_apellido.focus())
-        txt_apellido.bind("<Return>",lambda e:txt_telf.focus()) 
-        txt_telf.bind("<Return>",lambda e:txt_correo.focus())
-        txt_correo.bind("<Return>",lambda e:txt_contrasena.focus())
-        txt_contrasena.bind("<Return>",lambda event: manejar_registro())
+        lbl_no_account = ctk.CTkLabel(footer_frame, text="Don't have an account?", font=("Roboto", 12), text_color="gray")
+        lbl_no_account.pack(side="left")
 
+        btn_registro = ctk.CTkButton(footer_frame, text="Create Account", fg_color="transparent", text_color=constantes.COLOR_PRIMARY, hover_color="#E8F5E9", font=("Roboto", 12, "bold"), width=100, command=self.registro)
+        btn_registro.pack(side="left", padx=5)
 
+        # Atajo de teclado
+        txt_password.bind("<Return>", lambda event: manejar_login())
+
+    def registro(self):
+        self._limpiar_frame()
+        
+        # Frame de Registro (Más ancho también)
+        self.frame_registro = ctk.CTkFrame(self.fondo, fg_color="white", width=600, height=750, corner_radius=20)
+        self.frame_registro.place(relx=0.5, rely=0.5, anchor="center")
+        self.frame_registro.pack_propagate(False)
+
+        # LOGO UTD
+        if self.logo_utd:
+            # Usamos una versión un poco más pequeña para el registro
+            logo_small = ctk.CTkImage(Image.open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "view", "imagenes", "logo_utd.png")), size=(140, 60))
+            label_logo = ctk.CTkLabel(self.frame_registro, text="", image=logo_small)
+            label_logo.pack(pady=(30, 10))
+
+        titulo = ctk.CTkLabel(self.frame_registro, text="Create Account", font=("Roboto", 32, "bold"), text_color=constantes.COLOR_PRIMARY)
+        titulo.pack(pady=(0, 5))
+
+        subtitulo = ctk.CTkLabel(self.frame_registro, text="Join ControlLabs today.", font=("Roboto", 14), text_color="gray")
+        subtitulo.pack(pady=(0, 30))
+
+        # Contenedor de formulario (Grid para dos columnas)
+        form_frame = ctk.CTkFrame(self.frame_registro, fg_color="transparent")
+        form_frame.pack(fill="x", padx=50)
+        form_frame.columnconfigure((0, 1), weight=1, uniform="column")
+
+        # --- Estilo de los Entries ---
+        entry_style = {"height": 45, "font": ("Roboto", 14), "border_color": "#E0E0E0", "corner_radius": 10}
+        label_style = {"font": ("Roboto", 14, "bold"), "text_color": "#555", "anchor": "w"}
+
+        # --- Columna Izquierda ---
+        col1 = ctk.CTkFrame(form_frame, fg_color="transparent")
+        col1.grid(row=0, column=0, padx=(0, 15), sticky="nsew")
+
+        ctk.CTkLabel(col1, text="First Name", **label_style).pack(fill="x", pady=(0, 5))
+        txt_nombre1 = ctk.CTkEntry(col1, **entry_style)
+        txt_nombre1.pack(fill="x", pady=(0, 20))
+
+        ctk.CTkLabel(col1, text="Last Name", **label_style).pack(fill="x", pady=(0, 5))
+        txt_apellido = ctk.CTkEntry(col1, **entry_style)
+        txt_apellido.pack(fill="x", pady=(0, 20))
+
+        ctk.CTkLabel(col1, text="Phone Number", **label_style).pack(fill="x", pady=(0, 5))
+        txt_telf = ctk.CTkEntry(col1, **entry_style)
+        txt_telf.pack(fill="x", pady=(0, 20))
+
+        # --- Columna Derecha ---
+        col2 = ctk.CTkFrame(form_frame, fg_color="transparent")
+        col2.grid(row=0, column=1, padx=(15, 0), sticky="nsew")
+
+        ctk.CTkLabel(col2, text="Middle Name (Optional)", **label_style).pack(fill="x", pady=(0, 5))
+        txt_nombre2 = ctk.CTkEntry(col2, **entry_style)
+        txt_nombre2.pack(fill="x", pady=(0, 20))
+
+        ctk.CTkLabel(col2, text="Email (@utd.edu.mx)", **label_style).pack(fill="x", pady=(0, 5))
+        txt_correo = ctk.CTkEntry(col2, **entry_style)
+        txt_correo.pack(fill="x", pady=(0, 20))
+
+        ctk.CTkLabel(col2, text="Password", **label_style).pack(fill="x", pady=(0, 5))
+        txt_contrasena = ctk.CTkEntry(col2, show="*", **entry_style)
+        txt_contrasena.pack(fill="x", pady=(0, 20))
+
+        # --- Botón de Registro ---
+        def manejar_registro():
+            datos = (
+                txt_nombre1.get().strip(),
+                txt_nombre2.get().strip(),
+                txt_apellido.get().strip(),
+                txt_telf.get().strip(),
+                txt_correo.get().strip(),
+                txt_contrasena.get().strip()
+            )
+            # Llamamos al controlador
+            if funciones_login.Funciones.verificacion_registro(*datos):
+                messagebox.showinfo("Success", "Account created successfully!\nPlease sign in.")
+                self.login()
+
+        btn_crear = ctk.CTkButton(self.frame_registro, text="SIGN UP", fg_color=constantes.COLOR_ACCENT, hover_color="#b87608", width=400, height=50, font=("Roboto", 16, "bold"), corner_radius=10, command=manejar_registro)
+        btn_crear.pack(pady=(30, 20), padx=50)
+
+        # --- Pie de página ---
+        footer_frame = ctk.CTkFrame(self.frame_registro, fg_color="transparent")
+        footer_frame.pack(pady=(10, 30))
+        
+        ctk.CTkLabel(footer_frame, text="Already have an account?", font=("Roboto", 12), text_color="gray").pack(side="left")
+        ctk.CTkButton(footer_frame, text="Sign In", fg_color="transparent", text_color=constantes.COLOR_PRIMARY, hover_color="#E8F5E9", font=("Roboto", 12, "bold"), width=80, command=self.login).pack(side="left", padx=5)

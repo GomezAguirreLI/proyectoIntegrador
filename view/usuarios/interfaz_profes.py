@@ -1,1099 +1,375 @@
-from tkinter import messagebox
 import customtkinter as ctk
+from tkinter import messagebox, ttk, Menu
 from view import constantes
-from tkinter import ttk
-from tkinter import *
-from model import laboratorios
-
-from datetime import date
+from model import laboratorios, usuarios
 from controller import funciones_incidentes
 from PIL import Image
-from view  import interfaz
-
 import os
-
-#de la rama vieja a l main
+from datetime import date
 
 class UsuariosProfes:
-    """
-    Clase que construye el dashboard para los profesores.
-    
-    Cada interfaz está separada en métodos:
-      - mostrar_dashboard()
-      - mostrar_perfil()
-      - mostrar_laboratorios()
-
-    Todas las interfaces usan el mismo menú lateral.
-    """
-  
-
-    def __init__(self, ventana,usuario):
-        BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  
-        IMAGES_DIR = os.path.join(BASE_DIR, "imagenes")
-
-        self.ventana = ventana
-        self.usuario = usuario
-        self.img_logo = ctk.CTkImage(
-           light_image=Image.open(os.path.join(IMAGES_DIR, "logo.png")),
-           dark_image=Image.open(os.path.join(IMAGES_DIR, "logo.png")),
-           size=(100,90)
-        )
-        self.img_usuario = ctk.CTkImage(
-            light_image=Image.open(os.path.join(IMAGES_DIR,"usuario.png")),
-            dark_image=Image.open(os.path.join(IMAGES_DIR,"usuario.png")),
-            size=(100,90)
-        )
-        self.img_historial=ctk.CTkImage(
-            light_image=Image.open(os.path.join(IMAGES_DIR,"historial.png")),
-            dark_image=Image.open(os.path.join(IMAGES_DIR,"historial.png")),
-            size=(80,90)
-        )
-        self.img_usuario_dos=ctk.CTkImage(
-            light_image=Image.open(os.path.join(IMAGES_DIR,"usuario2.png")),
-            dark_image=Image.open(os.path.join(IMAGES_DIR,"usuario2.png")),
-            size=(200,200)
-        )
-
-
-       
-
+    def __init__(self, frame_padre, usuario):
+        self.frame_padre = frame_padre
+        self.ventana = frame_padre.winfo_toplevel() 
+        self.usuario = list(usuario) 
         
+        self.menu_buttons = {}
 
+        BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        IMAGES_DIR = os.path.join(BASE_DIR, "view", "imagenes")
 
+        self.img_logo_utd = None
+        try:
+            self.img_logo_utd = ctk.CTkImage(Image.open(os.path.join(IMAGES_DIR, "logo_utd.png")), size=(140, 60))
+        except Exception:
+            self.img_logo_utd = None
 
+        for w in self.frame_padre.winfo_children(): w.destroy()
 
-        # Limpiar la ventana recibida
-        for w in self.ventana.winfo_children():
-            w.destroy()
+        self.main_container = ctk.CTkFrame(self.frame_padre, fg_color="#F5F5F5")
+        self.main_container.pack(fill="both", expand=True)
 
-        # ====== CONTENEDOR PRINCIPAL ======
-        self.container = ctk.CTkFrame(self.ventana, fg_color="white")
-        self.container.pack(fill="both", expand=True)
-
-        # ====== SIDEBAR (MENU LATERAL) ======
-        self.sidebar = ctk.CTkFrame(
-            self.container,
-            fg_color=constantes.color,
-            width=220,
-            corner_radius=0
-        )
+        # --- Sidebar Blanco ---
+        self.sidebar = ctk.CTkFrame(self.main_container, fg_color="white", width=250, corner_radius=0)
         self.sidebar.pack(side="left", fill="y")
         self.sidebar.pack_propagate(False)
 
-        # ====== ÁREA PRINCIPAL (DONDE CAMBIA TODO) ======
-        self.main = ctk.CTkFrame(self.container, fg_color="white")
-        self.main.pack(side="left", fill="both", expand=True)
+        self.content_area = ctk.CTkFrame(self.main_container, fg_color="#F5F5F5")
+        self.content_area.pack(side="right", fill="both", expand=True)
 
-        # Crear botones del menú
         self._build_sidebar()
-
-        # Mostrar interfaz inicial
         self.mostrar_dashboard()
 
-    # =====================================================
-    #   MÉTODOS PARA DIBUJAR CADA INTERFAZ
-    # =====================================================
+    def _build_sidebar(self):
+        if self.img_logo_utd:
+            ctk.CTkLabel(self.sidebar, text="", image=self.img_logo_utd).pack(pady=(30, 10))
 
-    def mostrar_dashboard(self):
-            self._clear_main()
-            scroll=ctk.CTkScrollableFrame(
-                master=self.main,
-                height=600,
-                width=600,
-                fg_color="#ffffff"
-
-            )
-            scroll.pack(padx=20, pady=20, fill="both", expand=True)
-
+        ctk.CTkLabel(self.sidebar, text="ControlLabs", font=("Roboto", 24, "bold"), text_color=constantes.COLOR_PRIMARY).pack(pady=(10, 20))
         
+        nombre_corto = f"{self.usuario[1]} {self.usuario[3]}"
+        ctk.CTkLabel(self.sidebar, text=f"Welcome,\n{nombre_corto}", font=("Roboto", 16), text_color="gray").pack(pady=(0, 40))
 
-            # ---------------- TITULO ----------------
-            titulo = ctk.CTkLabel(
-                scroll,
-                text="Journal",
-                text_color="#000000",
-                font=("Arial", 50, "bold")
-            )
-            titulo.pack(pady=20)
-            lbl_h2=ctk.CTkLabel(
-                scroll,
-                text="Select Laboratory",
-                font=("Arial", 30, "bold"),
-                text_color="#132301"
-            )
-            lbl_h2.pack(pady=5)
-            lbl_text=ctk.CTkLabel(
-                scroll,
-                text="In this area, you can submit a report about damaged \n equipment within the Technological University of Durango.",
-                font=("Arial",25),
-                text_color="#132301"
-            )
-            lbl_text.pack()
-            # ------------ CONTENEDOR BARRA DE BUSQUEDA ------------
-            contenedor = ctk.CTkFrame(scroll, fg_color="transparent")
-            contenedor.pack(pady=10)
-            #DEBERIA SER POR NOMBRE PERO YA NO SE SI MOVERLE MAS
-            lbl_buscar = ctk.CTkLabel(
-                contenedor,
-                text="Busca por ID",
-                font=("Arial", 14),
-                text_color="#161616"
-                
-            )
-            lbl_buscar.pack(anchor="w", pady=(0, 5))
+        self.menu_buttons["home"] = self._crear_btn_menu("Home / Labs", self.mostrar_dashboard)
+        self.menu_buttons["home"].pack(fill="x", pady=5, padx=10)
 
-            fila = ctk.CTkFrame(scroll, fg_color="transparent")
-            fila.pack(pady=5, anchor="center")   # ⬅ Centrar toda la fila
-            id=StringVar()
+        self.menu_buttons["profile"] = self._crear_btn_menu("My Profile", self.mostrar_perfil)
+        self.menu_buttons["profile"].pack(fill="x", pady=5, padx=10)
 
-            # Entry
-            txt_buscar = ctk.CTkEntry(
-                fila,
-                width=350,
-                height=40,
-                corner_radius=20,
-                placeholder_text="Escribe el ID...",
-                textvariable=id,
-                fg_color="#e6e6e6",
-                text_color="#1A1919"
-            )
-            txt_buscar.pack(side="left", padx=5)
-            txt_buscar.focus()
-            
-            # Botón BUSCAR
-            btn_buscar = ctk.CTkButton(
-                fila,
-                text="BUSCAR",
-                fg_color="#32df57",
-                hover_color="#28c94b",
-                text_color="white",
-                corner_radius=20,
-                width=120,
-                height=40,
-                
-                command=lambda:buscar(id.get())
-            )
-            btn_buscar.pack(side="left", padx=10)
+        self.menu_buttons["history"] = self._crear_btn_menu("Report History", self.mostrar_historial)
+        self.menu_buttons["history"].pack(fill="x", pady=5, padx=10)
 
-            # Botón REPORTAR
-            btn_reportar = ctk.CTkButton(
-                fila,
-                text="REPORTAR",
-                fg_color="#d9534f",
-                hover_color="#c9302c",
-                text_color="white",
-                corner_radius=20,
-                width=120,
-                height=40,
-                command=lambda:self.consultar_seleccion(tabla,"g")
-            )
-            btn_reportar.pack(side="left", padx=10)
-            #hover botton
+        ctk.CTkButton(self.sidebar, text="Sign Out", fg_color="#c62828", hover_color="#8e0000", height=40, command=self._cerrar_sesion).pack(side="bottom", fill="x", pady=30, padx=20)
 
+    def _crear_btn_menu(self, text, command):
+        return ctk.CTkButton(self.sidebar, text=text, fg_color="transparent", text_color="gray", hover_color="#F0F0F0", anchor="w", height=50, font=("Roboto", 14, "bold"), command=command)
 
-            # ---------------- TABLA ----------------
-          
-            tabla_frame = ctk.CTkFrame(scroll, fg_color="#e5e5e5", corner_radius=10)
-            tabla_frame.pack(pady=20, padx=40, fill="both", expand=True)
+    def _highlight_menu(self, active_key):
+        for key, btn in self.menu_buttons.items():
+            if key == active_key:
+                btn.configure(fg_color=constantes.COLOR_PRIMARY, text_color="white")
+            else:
+                btn.configure(fg_color="transparent", text_color="gray")
 
-            # --------- ESTILOS DEL TREEVIEW PARA QUE COMBINE ---------
-            style = ttk.Style()
-            style.configure("Treeview",
-                            background="#f2f2f2",
-                            foreground="black",
-                            rowheight=30,
-                            fieldbackground="#f2f2f2",
-                            font=("Arial", 13))
-            style.configure("Treeview.Heading",
-                            background="#c3c3c3",
-                            foreground="black",
-                            font=("Arial", 14, "bold"))
-            style.map("Treeview",
-                    background=[("selected", "#32df57")])
+    def _cerrar_sesion(self):
+        if messagebox.askyesno("Sign Out", "Are you sure you want to sign out?"):
+            root = self.frame_padre.winfo_toplevel()
+            for widget in root.winfo_children():
+                widget.destroy()
+            from view import interfaz 
+            interfaz.Vista(root)
 
-            # --------- CREAR TREEVIEW ---------
-            columnas = ("Nombre", "edificio", "piso","Cantidad de computadoras")
+    def _limpiar_contenido(self):
+        for w in self.content_area.winfo_children(): w.destroy()
 
-            tabla = ttk.Treeview(tabla_frame, columns=columnas, show="headings", height=8)
+    # --- RESTO DE MÉTODOS SIN CAMBIOS ---
+    # Copia los métodos mostrar_dashboard, mostrar_perfil, mostrar_historial
+    # y los auxiliares (_cargar_labs, _abrir_ventana, etc) del código anterior.
+    # El cambio importante aquí fue en __init__, _build_sidebar y _highlight_menu.
+    
+    # ... (Pega aquí el resto del código de la versión anterior)
+    
+    # Para ahorrar espacio y no cortar la respuesta, te pongo el resto aquí:
+    
+    def mostrar_dashboard(self):
+        self._highlight_menu("home")
+        self._limpiar_contenido()
+        header = ctk.CTkFrame(self.content_area, fg_color="transparent")
+        header.pack(fill="x", padx=40, pady=40)
+        ctk.CTkLabel(header, text="Select Laboratory", font=("Roboto", 32, "bold"), text_color="#333").pack(anchor="w")
+        ctk.CTkLabel(header, text="Select a laboratory to report an incident.", font=("Roboto", 14), text_color="gray").pack(anchor="w")
+        actions = ctk.CTkFrame(self.content_area, fg_color="white", corner_radius=10)
+        actions.pack(fill="x", padx=40, pady=(0, 20))
+        search_var = ctk.StringVar()
+        entry_search = ctk.CTkEntry(actions, textvariable=search_var, placeholder_text="Search Lab name, building, floor...", width=300, height=40)
+        entry_search.pack(side="left", padx=20, pady=20)
+        btn_search = ctk.CTkButton(actions, text="Search", fg_color=constantes.COLOR_PRIMARY, command=lambda: self._buscar_lab(search_var.get(), tabla))
+        btn_search.pack(side="left", padx=10)
+        btn_report = ctk.CTkButton(actions, text="REPORT INCIDENT", fg_color=constantes.COLOR_ACCENT, hover_color="#b87608", font=("Roboto", 14, "bold"), height=40, command=lambda: self._iniciar_reporte(tabla))
+        btn_report.pack(side="right", padx=20)
+        frame_tabla = ctk.CTkFrame(self.content_area, fg_color="transparent")
+        frame_tabla.pack(fill="both", expand=True, padx=40, pady=(0, 40))
+        self._configurar_estilo_tabla()
+        cols = ("Nombre", "Edificio", "Piso", "Equipos")
+        tabla = ttk.Treeview(frame_tabla, columns=cols, show="headings", height=15)
+        tabla.heading("Nombre", text="Lab Name")
+        tabla.heading("Edificio", text="Building")
+        tabla.heading("Piso", text="Floor")
+        tabla.heading("Equipos", text="Computers")
+        tabla.column("Nombre", width=150)
+        tabla.column("Edificio", width=100, anchor="center")
+        tabla.column("Piso", width=80, anchor="center")
+        tabla.column("Equipos", width=100, anchor="center")
+        tabla.pack(fill="both", expand=True)
+        self._cargar_labs(tabla)
 
-            tabla.heading("Nombre", text="Name")
-            tabla.heading("edificio", text="Building")
-            tabla.heading("piso", text="Floor")
-            tabla.heading("Cantidad de computadoras", text="Number of equipment")
+    def _cargar_labs(self, tabla, texto_filtro=None):
+        for item in tabla.get_children(): tabla.delete(item)
+        if texto_filtro: datos = laboratorios.laboratorios.consultar_filtro(texto_filtro)
+        else: datos = laboratorios.laboratorios.consultar()
+        for fila in datos: tabla.insert("", "end", values=fila)
 
-            tabla.column("Nombre", width=80, anchor="center")
-            tabla.column("edificio", width=200, anchor="center")
-            tabla.column("piso", width=80, anchor="center")
-            tabla.column("Cantidad de computadoras", width=180, anchor="center")
-
-            tabla.pack(fill="both", expand=True, padx=10, pady=10)
-
-            #----------------------
-            # MOSTRAR DATOS REALES |
-            #-----------------------
-
-            datos=laboratorios.laboratorios.consultar()
-            for item in tabla.get_children():
-                tabla.delete(item)
-
-            for fila in datos:
-                # fila ahora = (nombre, edificio, piso, cant_pc)
-                tabla.insert("", "end", values=fila)
-
-            def buscar(id):
-                if not id.isdigit():
-                      messagebox.showerror("Error", "Debes ingresar un ID numérico válido.")
-                else:
-                    datos=laboratorios.laboratorios.consultar_id(id)
-                    for item in tabla.get_children():
-                        tabla.delete(item)
-
-                    for fila in datos:
-                        # fila ahora = (nombre, edificio, piso, cant_pc)
-                        tabla.insert("", "end", values=fila)
-           
-
-                        #----------------
-            # accesibilidad  |          
-            #----------------
-            txt_buscar.bind("<Return>",lambda event: buscar(id.get()))
+    def _buscar_lab(self, texto, tabla): self._cargar_labs(tabla, texto.strip() if texto else None)
 
     def mostrar_perfil(self):
-        
-        self._clear_main()
+        self._highlight_menu("profile")
+        self._limpiar_contenido()
+        ctk.CTkLabel(self.content_area, text="User Profile", font=("Roboto", 32, "bold"), text_color="#333").pack(anchor="w", padx=40, pady=(40, 20))
+        card = ctk.CTkFrame(self.content_area, fg_color="white", corner_radius=20)
+        card.pack(pady=10, padx=40, fill="both", expand=True)
+        banner = ctk.CTkFrame(card, fg_color=constantes.COLOR_PRIMARY, height=140, corner_radius=20)
+        banner.pack(fill="x", padx=20, pady=20)
+        header_content = ctk.CTkFrame(banner, fg_color="transparent")
+        header_content.pack(fill="both", expand=True, padx=20)
+        avatar_frame = ctk.CTkFrame(header_content, width=80, height=80, corner_radius=40, fg_color="white")
+        avatar_frame.pack(side="left", pady=20)
+        ctk.CTkLabel(avatar_frame, text="👤", font=("Arial", 40), text_color=constantes.COLOR_PRIMARY).place(relx=0.5, rely=0.5, anchor="center")
+        text_frame = ctk.CTkFrame(header_content, fg_color="transparent")
+        text_frame.pack(side="left", padx=20, fill="y", pady=25)
+        nombre_completo = f"{self.usuario[1]} {self.usuario[2]} {self.usuario[3]}"
+        ctk.CTkLabel(text_frame, text=nombre_completo, font=("Roboto", 26, "bold"), text_color="white", anchor="w").pack(anchor="w")
+        ctk.CTkLabel(text_frame, text=self.usuario[6].upper(), font=("Roboto", 14, "bold"), text_color="#E0E0E0", anchor="w").pack(anchor="w", pady=(2, 0))
+        info_grid = ctk.CTkFrame(card, fg_color="transparent")
+        info_grid.pack(pady=(10, 30), padx=50, fill="x")
+        def crear_celda(row, col, icon, title, value):
+            f = ctk.CTkFrame(info_grid, fg_color="#F9F9F9", corner_radius=10, border_width=1, border_color="#EEE")
+            f.grid(row=row, column=col, padx=10, pady=10, sticky="nsew")
+            ctk.CTkLabel(f, text=icon, font=("Arial", 24)).pack(side="left", padx=15)
+            tf = ctk.CTkFrame(f, fg_color="transparent")
+            tf.pack(side="left", pady=10)
+            ctk.CTkLabel(tf, text=title, font=("Roboto", 11), text_color="gray").pack(anchor="w")
+            ctk.CTkLabel(tf, text=value, font=("Roboto", 14, "bold"), text_color="#333").pack(anchor="w")
+        info_grid.columnconfigure((0,1), weight=1)
+        crear_celda(0, 0, "📧", "Email Address", self.usuario[5])
+        crear_celda(0, 1, "📞", "Phone Number", self.usuario[4])
+        crear_celda(1, 0, "🆔", "User ID", str(self.usuario[0]))
+        btn_edit = ctk.CTkButton(card, text="Edit Contact Info", fg_color="transparent", border_width=2, border_color=constantes.COLOR_PRIMARY, text_color=constantes.COLOR_PRIMARY, font=("Roboto", 14, "bold"), height=45, command=self._editar_perfil_popup)
+        btn_edit.pack(side="bottom", pady=30)
+        def on_enter(e): btn_edit.configure(fg_color=constantes.COLOR_PRIMARY, text_color="white")
+        def on_leave(e): btn_edit.configure(fg_color="transparent", text_color=constantes.COLOR_PRIMARY)
+        btn_edit.bind("<Enter>", on_enter)
+        btn_edit.bind("<Leave>", on_leave)
 
-        # ----- TÍTULO -----
-        titulo = ctk.CTkLabel(
-            self.main,
-            text="Edit Profile",
-            text_color="#0F0F0F",
-            font=("Arial", 45, "bold")
-        )
-        titulo.pack(pady=25, anchor="w", padx=40)
+    def _editar_perfil_popup(self):
+        toplevel = ctk.CTkToplevel(self.ventana)
+        toplevel.title("Edit Contact Info")
+        toplevel.geometry("400x350")
+        toplevel.transient(self.ventana)
+        toplevel.grab_set()
+        toplevel.update_idletasks()
+        x = (toplevel.winfo_screenwidth() // 2) - (200)
+        y = (toplevel.winfo_screenheight() // 2) - (175)
+        toplevel.geometry(f'+{x}+{y}')
+        frame = ctk.CTkFrame(toplevel, fg_color="white")
+        frame.pack(fill="both", expand=True, padx=20, pady=20)
+        ctk.CTkLabel(frame, text="Edit Contact Info", font=("Roboto", 20, "bold"), text_color=constantes.COLOR_PRIMARY).pack(pady=(10, 20))
+        ctk.CTkLabel(frame, text="Phone Number:", font=("Roboto", 12)).pack(anchor="w", padx=20)
+        entry_phone = ctk.CTkEntry(frame)
+        entry_phone.pack(fill="x", padx=20, pady=(0, 15))
+        entry_phone.insert(0, self.usuario[4])
+        ctk.CTkLabel(frame, text="Email Address:", font=("Roboto", 12)).pack(anchor="w", padx=20)
+        entry_email = ctk.CTkEntry(frame)
+        entry_email.pack(fill="x", padx=20, pady=(0, 20))
+        entry_email.insert(0, self.usuario[5])
+        def guardar_cambios():
+            new_phone = entry_phone.get()
+            new_email = entry_email.get()
+            if not new_phone or not new_email:
+                messagebox.showerror("Error", "All fields are required.")
+                return
+            if usuarios.Usuarios.actualizar_contacto(self.usuario[0], new_phone, new_email):
+                messagebox.showinfo("Success", "Profile updated successfully.")
+                self.usuario[4] = new_phone
+                self.usuario[5] = new_email
+                toplevel.destroy()
+                self.mostrar_perfil()
+            else:
+                messagebox.showerror("Error", "Could not update profile.")
+        ctk.CTkButton(frame, text="SAVE CHANGES", fg_color=constantes.COLOR_PRIMARY, command=guardar_cambios).pack(fill="x", padx=20, pady=10)
 
-        scroll = ctk.CTkScrollableFrame(
-            master=self.main,
-            height=600,
-            width=600,
-            fg_color="#ffffff"
-        )
-        scroll.pack(padx=20, pady=20, fill="both", expand=True)
-        
-        # ----------------------------------------------------
-        # SECCIÓN 1: HEADER DEL PERFIL (Imagen, Upload, Info)
-        # ----------------------------------------------------
-        
-        # 1. Contenedor principal para la cabecera (Imagen y texto de subida)
-        # Lo empaquetamos en el scroll frame y lo anclamos al oeste (izquierda)
-        user_header_frame = ctk.CTkFrame(scroll, fg_color="transparent")
-        user_header_frame.pack(pady=30, padx=40, anchor="w") # Espacio debajo del título
-        
-        # === Columna 0: Imagen de Usuario (lbl_user) ===
-        lbl_user = ctk.CTkLabel(
-            user_header_frame,
-            image=self.img_usuario_dos,
-            text="" # Asegúrate de que no tenga texto
-        )
-        # Usamos grid para posicionarla en la columna 0, abarcando 2 filas (rowspan=2)
-        lbl_user.grid(row=0, column=0, rowspan=2, padx=(0, 20), sticky="n") # sticky="n" para alinear arriba
-        
-        # === Columna 1: Texto de Subida y Recomendación ===
-        
-        # Botón/Etiqueta para "Upload new photo"
-        lbl_user_name = ctk.CTkLabel(
-            user_header_frame,
-            text=f"{self.usuario[1]} {self.usuario[2]}",
-            text_color="#1C1D1E", # Un color azul para indicar que es clickeable
-            font=("Arial", 40, "bold"),
-            cursor="hand2" # Indica que es interactivo
-        )
-        lbl_user_name.grid(row=0, column=1, sticky="w", pady=(0, 5)) 
+    def mostrar_historial(self):
+        self._highlight_menu("history")
+        self._limpiar_contenido()
+        header = ctk.CTkFrame(self.content_area, fg_color="transparent")
+        header.pack(fill="x", padx=40, pady=40)
+        ctk.CTkLabel(header, text="Report History", font=("Roboto", 32, "bold"), text_color="#333").pack(anchor="w")
+        ctk.CTkLabel(header, text="Manage your incident reports.", font=("Roboto", 12), text_color="gray").pack(anchor="w")
+        actions = ctk.CTkFrame(self.content_area, fg_color="white", corner_radius=10)
+        actions.pack(fill="x", padx=40, pady=(0, 20))
+        hist_search_var = ctk.StringVar()
+        entry_hist = ctk.CTkEntry(actions, textvariable=hist_search_var, placeholder_text="Filter history...", width=350, height=40)
+        entry_hist.pack(side="left", padx=20, pady=20)
+        btn_hist_search = ctk.CTkButton(actions, text="Filter", fg_color=constantes.COLOR_PRIMARY, command=lambda: self._buscar_historial(hist_search_var.get(), tabla))
+        btn_hist_search.pack(side="left", padx=10)
+        frame_tabla = ctk.CTkFrame(self.content_area, fg_color="transparent")
+        frame_tabla.pack(fill="both", expand=True, padx=40, pady=(0, 40))
+        self._configurar_estilo_tabla()
+        cols = ("ID", "Date", "Incident", "Lab Name", "Building", "Status", "Actions")
+        tabla = ttk.Treeview(frame_tabla, columns=cols, show="headings", height=15)
+        for col in cols:
+            tabla.heading(col, text=col)
+            tabla.column(col, anchor="center")
+        tabla.column("ID", width=50)
+        tabla.column("Incident", width=250, anchor="w")
+        tabla.column("Actions", width=100, anchor="center") 
+        tabla.pack(fill="both", expand=True)
+        scrollbar = ttk.Scrollbar(frame_tabla, orient="vertical", command=tabla.yview)
+        tabla.configure(yscroll=scrollbar.set)
+        scrollbar.pack(side="right", fill="y")
+        tabla.bind("<ButtonRelease-1>", lambda event: self._manejar_clic_tabla(event, tabla))
+        self._cargar_historial(tabla)
 
-        # Texto de recomendación (800x800, formatos)
-        lbl_recommendation = ctk.CTkLabel(
-            user_header_frame,
-            text="Here you will be available to modify your personal info.",
-            text_color="#888888",
-            font=("Arial", 25)
-        )
-        lbl_recommendation.grid(row=1, column=1, sticky="w") 
+    def _cargar_historial(self, tabla, filtro=""):
+        for item in tabla.get_children(): tabla.delete(item)
+        datos = funciones_incidentes.incidente.consulta_Tabla(self.usuario[0])
+        tabla.tag_configure("process", background="#FFF3E0")
+        tabla.tag_configure("ended", background="#E8F5E9")
+        filtro = filtro.lower().strip()
+        for fila in datos:
+            if filtro:
+                texto_fila = f"{fila[0]} {fila[2]} {fila[3]} {fila[4]}".lower()
+                if filtro not in texto_fila: continue
+            estado_txt = "In Process" if fila[5] == 0 else "Resolved"
+            tag = "process" if fila[5] == 0 else "ended"
+            acciones_txt = "📄  ✎  🗑" 
+            valores = (fila[0], fila[1], fila[2], fila[3], fila[4], estado_txt, acciones_txt)
+            tabla.insert("", "end", values=valores, tags=(tag,))
 
-        # ----------------------------------------------------
-        # SECCIÓN 2: HEADER "Personal Info" + Edit button
-        # ----------------------------------------------------
+    def _buscar_historial(self, texto, tabla): self._cargar_historial(tabla, texto)
 
-        header_info_frame = ctk.CTkFrame(scroll, fg_color="transparent")
-        header_info_frame.pack(fill="x", padx=40, pady=(40, 5))
+    def _manejar_clic_tabla(self, event, tabla):
+        region = tabla.identify("region", event.x, event.y)
+        if region == "cell":
+            columna = tabla.identify_column(event.x)
+            if columna == "#7": 
+                item_id = tabla.identify_row(event.y)
+                if item_id:
+                    tabla.selection_set(item_id)
+                    self._mostrar_menu_acciones(event, tabla, item_id)
 
-        # Título a la izquierda
-        titulo_info = ctk.CTkLabel(
-            header_info_frame,
-            text="Personal Info",
-            font=("Arial", 22, "bold"),
-            text_color="black"
-        )
-        titulo_info.grid(row=0, column=0, sticky="w")
+    def _mostrar_menu_acciones(self, event, tabla, item_id):
+        menu = Menu(self.ventana, tearoff=0)
+        menu.add_command(label="📄 View Details", command=lambda: self._accion_ver(tabla, item_id))
+        menu.add_command(label="✎ Edit Report", command=lambda: self._accion_editar(tabla, item_id))
+        menu.add_separator()
+        menu.add_command(label="🗑 Delete Report", command=lambda: self._accion_borrar(tabla, item_id))
+        menu.tk_popup(event.x_root, event.y_root)
 
-        # Botón EDIT a la derecha
-        btn_edit = ctk.CTkButton(
-            header_info_frame,
-            text="Edit",
-            width=80,
-            height=35,
-            corner_radius=12,
-            fg_color="#FFFFFF",
-            text_color="#000000",
-            border_color="#D0D0D0",
-            border_width=2,
-        )
-        btn_edit.grid(row=0, column=1, sticky="e")
+    def _accion_ver(self, tabla, item_id):
+        datos = tabla.item(item_id, "values")
+        self._abrir_ventana_reporte("View Details", None, datos[0], es_edicion=False, datos_completos=datos, solo_lectura=True)
 
-        # Fuerza el espacio entre izquierda y derecha
-        header_info_frame.grid_columnconfigure(0, weight=1)
+    def _accion_borrar(self, tabla, item_id):
+        datos = tabla.item(item_id, "values") 
+        if messagebox.askyesno("Confirm", "Are you sure you want to delete this report?"):
+            if funciones_incidentes.incidente.borrarIncidente(datos):
+                self._cargar_historial(tabla) 
 
-        # Separador debajo
-        separador = ctk.CTkFrame(scroll, height=2, fg_color="#E0E0E0")
-        separador.pack(fill="x", padx=40, pady=(0, 20))
-        # ====== CONTENEDOR PRINCIPAL DE PERSONAL INFO ======
-        info_frame = ctk.CTkFrame(
-            scroll,
-            fg_color="#F8F8F8",
-            corner_radius=20
-        )
-        info_frame.pack(fill="x", padx=40, pady=25)
+    def _accion_editar(self, tabla, item_id):
+        datos = tabla.item(item_id, "values")
+        self._abrir_ventana_reporte("Edit Report", None, datos[0], es_edicion=True, texto_actual=datos[2])
 
-       
+    def _iniciar_reporte(self, tabla):
+        seleccion = tabla.focus()
+        if not seleccion:
+            messagebox.showwarning("Selection Required", "Please select a laboratory to report.")
+            return
+        datos_lab = tabla.item(seleccion, "values") 
+        id_tupla = laboratorios.laboratorios.buscar_id(datos_lab)
+        if not id_tupla:
+             messagebox.showerror("Error", "Could not identify laboratory ID.")
+             return
+        self._abrir_ventana_reporte("New Report", datos_lab, id_tupla[0])
 
-        # ======== SECCIÓN DE CAMPOS ========
-        content = ctk.CTkFrame(info_frame, fg_color="transparent")
-        content.grid(row=2, column=0, padx=20, pady=20, sticky="w")
+    def _abrir_ventana_reporte(self, titulo, datos_lab, id_referencia, es_edicion=False, texto_actual="", datos_completos=None, solo_lectura=False):
+        toplevel = ctk.CTkToplevel(self.ventana)
+        toplevel.title(titulo)
+        toplevel.geometry("500x600")
+        toplevel.transient(self.ventana)
+        toplevel.grab_set()
+        toplevel.update_idletasks()
+        width = toplevel.winfo_width()
+        height = toplevel.winfo_height()
+        x = (toplevel.winfo_screenwidth() // 2) - (width // 2)
+        y = (toplevel.winfo_screenheight() // 2) - (height // 2)
+        toplevel.geometry(f'{width}x{height}+{x}+{y}')
+        frame = ctk.CTkFrame(toplevel, fg_color="white")
+        frame.pack(fill="both", expand=True, padx=20, pady=20)
+        ctk.CTkLabel(frame, text=titulo, font=("Roboto", 24, "bold"), text_color=constantes.COLOR_PRIMARY).pack(pady=(10, 20))
+        if solo_lectura and datos_completos:
+            grid = ctk.CTkFrame(frame, fg_color="#F9F9F9")
+            grid.pack(fill="x", padx=10, pady=10)
+            campos = [("Report ID:", datos_completos[0]), ("Date:", datos_completos[1]),
+                      ("Status:", datos_completos[5]), ("Laboratory:", datos_completos[3]),
+                      ("Building:", datos_completos[4])]
+            for label, val in campos:
+                f = ctk.CTkFrame(grid, fg_color="transparent")
+                f.pack(fill="x", padx=10, pady=5)
+                ctk.CTkLabel(f, text=label, width=100, anchor="w", font=("Roboto", 12, "bold"), text_color="gray").pack(side="left")
+                ctk.CTkLabel(f, text=val, anchor="w", font=("Roboto", 12), text_color="#333").pack(side="left")
+            ctk.CTkLabel(frame, text="Incident Details:", font=("Roboto", 14, "bold")).pack(anchor="w", padx=10, pady=(20, 5))
+            txt = ctk.CTkTextbox(frame, height=150, border_color="gray", border_width=1, fg_color="#F0F0F0")
+            txt.pack(fill="x", padx=10)
+            txt.insert("1.0", datos_completos[2])
+            txt.configure(state="disabled")
+            ctk.CTkButton(frame, text="Close", fg_color="gray", command=toplevel.destroy).pack(fill="x", padx=10, pady=20)
+            return
+        if datos_lab:
+            info_box = ctk.CTkFrame(frame, fg_color="#F5F5F5")
+            info_box.pack(fill="x", pady=10, padx=10)
+            ctk.CTkLabel(info_box, text=f"Lab: {datos_lab[0]}", font=("Roboto", 14, "bold")).pack(anchor="w", padx=10, pady=2)
+            ctk.CTkLabel(info_box, text=f"Building: {datos_lab[1]} - Floor: {datos_lab[2]}", font=("Roboto", 12)).pack(anchor="w", padx=10, pady=2)
+            ctk.CTkLabel(info_box, text=f"Date: {date.today()}", font=("Roboto", 12)).pack(anchor="w", padx=10, pady=2)
+        ctk.CTkLabel(frame, text="Describe the incident:", font=("Roboto", 14)).pack(anchor="w", padx=10, pady=(10, 5))
+        txt_desc = ctk.CTkTextbox(frame, height=150, border_color="gray", border_width=1)
+        txt_desc.pack(fill="x", padx=10)
+        txt_desc.focus()
+        if texto_actual: txt_desc.insert("1.0", texto_actual)
+        lbl_chars = ctk.CTkLabel(frame, text="0 / 150 chars", text_color="gray", font=("Roboto", 12))
+        lbl_chars.pack(anchor="e", padx=10)
+        def check_chars(event):
+            texto = txt_desc.get("1.0", "end-1c")
+            if len(texto) > 150:
+                txt_desc.delete("end-2c")
+            lbl_chars.configure(text=f"{len(txt_desc.get('1.0', 'end-1c'))} / 150 chars")
+        txt_desc.bind("<KeyRelease>", check_chars)
+        def enviar():
+            texto = txt_desc.get("1.0", "end-1c")
+            if not texto.strip():
+                messagebox.showerror("Error", "Description cannot be empty.")
+                return
+            if es_edicion:
+                funciones_incidentes.incidente.actualizar((id_referencia, texto)) 
+                messagebox.showinfo("Success", "Report updated.")
+                self.mostrar_historial()
+            else:
+                exito = funciones_incidentes.incidente.insertar(self.usuario[0], texto, id_referencia)
+                if exito: messagebox.showinfo("Success", "Report submitted successfully.")
+            toplevel.destroy()
+        ctk.CTkButton(frame, text="SUBMIT", fg_color=constantes.COLOR_PRIMARY, height=45, command=enviar).pack(fill="x", padx=10, pady=20)
 
-        # ---- Columna 0: Full Name ----
-        lbl_fullname_title = ctk.CTkLabel(
-            content,
-            text="Full Name",
-            text_color="#7A7A7A",
-            font=("Arial", 14)
-        )
-        lbl_fullname_title.grid(row=0,padx=150,column=0, sticky="w")
-
-        lbl_fullname_value = ctk.CTkLabel(
-            content,
-            text=f"{self.usuario[1]} {self.usuario[2]}",
-            font=("Arial", 16, "bold"),
-            text_color="#1C1D1E"
-        )
-        lbl_fullname_value.grid(row=1,padx=150, column=0,sticky="w", pady=(5, 0))
-
-        # ---- Columna 1: Email ----
-        lbl_email_title = ctk.CTkLabel(
-            content,
-            text="Email",
-            text_color="#7A7A7A",
-            font=("Arial", 14)
-        )
-        lbl_email_title.grid(row=0, column=1, sticky="w", padx=(250, 0))
-
-        lbl_email_value = ctk.CTkLabel(
-            content,
-            text=self.usuario[5],  # email
-            font=("Arial", 16, "bold"),
-            text_color="#1C1D1E"
-        )
-        lbl_email_value.grid(row=1, column=1, sticky="w", padx=(200, 0), pady=(5, 0))
-
-        # ---- Columna 2: Phone ----
-        lbl_phone_title = ctk.CTkLabel(
-            content,
-            text="Phone",
-            text_color="#7A7A7A",
-            font=("Arial", 14)
-        )
-        lbl_phone_title.grid(row=0, column=2, sticky="w", padx=(200, 0))
-
-        lbl_phone_value = ctk.CTkLabel(
-            content,
-            text=self.usuario[4],  # telefono
-            font=("Arial", 16, "bold"),
-            text_color="#1C1D1E"
-        )
-        lbl_phone_value.grid(row=1, column=2, sticky="w", padx=(200, 0), pady=(5, 0))
-            
-    def mostrar_laboratorios(self):
-        self._clear_main()
-
-        # ==================== TÍTULO ====================
-        titulo = ctk.CTkLabel(
-            self.main,
-            text="Historial de reportes",
-            text_color="#000000",
-            font=("Arial", 40, "bold")
-        )
-        titulo.pack(pady=25)
-
-        lbl_h2 = ctk.CTkLabel(
-            self.main,
-            text="En esta área usted podrá visualizar los reportes que ha hecho",
-            text_color="#000000",
-            font=("Arial", 30)
-        )
-        lbl_h2.pack(pady=5)
-
-        # ==================== MENÚ DENTRO DEL FRAME ====================
-        
-        # --- Contenedor ---
-        menu_frame = ctk.CTkFrame(self.main, fg_color="#d9d9d9", corner_radius=10)
-        menu_frame.pack(fill="x", padx=40, pady=0)
-
-        # --- Popup menú de FECHA ---
-        popup_fecha = Menu(menu_frame, tearoff=0)
-        popup_fecha.add_command(label="Ordenar por último reporte",command=lambda:self.ordenarFechaDesc(tabla))
-        popup_fecha.add_command(label="Ordenar por primer reporte",command=lambda:self.ordenarFechaAsc(tabla))
-
-        def mostrar_popup_fecha(event):
-            popup_fecha.tk_popup(event.x_root, event.y_root)
-
-        btn_fecha = ctk.CTkButton(
-            menu_frame,
-            text="Organizar por fecha",
-            width=180,
-            height=38,
-            fg_color="#c7c7c7",
-            text_color="black"
-        )
-        btn_fecha.pack(side="left", padx=10)
-        btn_fecha.bind("<Button-1>", mostrar_popup_fecha)
-
-        # --- Popup menú de estado ---
-        popup_estado = Menu(menu_frame, tearoff=0)
-        popup_estado.add_command(label="Order by in PROCESS",command=lambda:self.ordenarProcesso(tabla))
-        popup_estado.add_command(label="Order by ENDED",command=lambda:self.ordenarProcesso_terminado(tabla))
-
-        def mostrar_popup_estado(event):
-            popup_estado.tk_popup(event.x_root, event.y_root)
-
-        btn_estado = ctk.CTkButton(
-            menu_frame,
-            text="STATE",
-            width=180,
-            height=38,
-            fg_color="#c7c7c7",
-            text_color="black"
-        )
-        btn_estado.pack(side="left", padx=10, expand=True)
-        btn_estado.bind("<Button-1>", mostrar_popup_estado)
-
-        # --- Popup menú de EDIFICIO ---
-        popup_edificio = Menu(menu_frame, tearoff=0)
-        popup_edificio.add_command(label="Ordenar por edificio",command=lambda:self.ordenarEdificio(tabla))
-        popup_edificio.add_command(label="Ordenar por laboratorio", command=lambda:self.ordenarlab(tabla))
-
-        def mostrar_popup_edificio(event):
-            popup_edificio.tk_popup(event.x_root, event.y_root)
-
-        btn_edificio = ctk.CTkButton(
-            menu_frame,
-            text="Edificio",
-            width=180,
-            height=38,
-            fg_color="#c7c7c7",
-            text_color="black"
-        )
-        btn_edificio.pack(side="left", padx=10)
-        btn_edificio.bind("<Button-1>", mostrar_popup_edificio)
-
-        # ==================== TABLA ====================
-        tabla_frame = ctk.CTkFrame(self.main, fg_color="#e5e5e5", corner_radius=10)
-        tabla_frame.pack(pady=20, padx=40, fill="both", expand=True)
-
+    def _configurar_estilo_tabla(self):
         style = ttk.Style()
-        style.configure(
-            "Treeview",
-            background="#f2f2f2",
-            foreground="black",
-            rowheight=30,
-            fieldbackground="#f2f2f2",
-            font=("Arial", 13)
-        )
-        style.configure(
-            "Treeview.Heading",
-            background="#c3c3c3",
-            foreground="black",
-            font=("Arial", 14, "bold")
-        )
-        style.map("Treeview", background=[("selected", "#32df57")])
-
-        columnas = ("ID_Incident", "Date and hour", "Incident", "name", "building","Observations")
-        tabla = ttk.Treeview(tabla_frame, columns=columnas, show="headings", height=8)
-
-        tabla.heading("ID_Incident", text="ID_incident")
-        tabla.heading("Date and hour", text="date")
-        tabla.heading("Incident", text="Incident")
-        tabla.heading("name", text="name")
-        tabla.heading("building", text="building")
-        tabla.heading("Observations", text="Observations")
-
-
-        tabla.column("ID_Incident", width=80, anchor="center")
-        tabla.column("Date and hour", width=200, anchor="center")
-        tabla.column("Incident", width=120, anchor="center")
-        tabla.column("name", width=80, anchor="center")
-        tabla.column("building", width=80, anchor="center")
-        tabla.column("Observations", width=80, anchor="center")
-
-
-        tabla.pack(fill="both", expand=True, padx=10, pady=10)
-
-        # ==================== BOTONES ====================
-        contenedor = ctk.CTkFrame(self.main, fg_color="#f2f2f2", corner_radius=20)
-        contenedor.pack(pady=20, padx=40, fill="both", expand=False)
-
-        botones = ctk.CTkFrame(contenedor, fg_color="transparent")
-        botones.pack(pady=25)
-
-        btn_actualizar = ctk.CTkButton(
-            botones,
-            text="Actualizar",
-            fg_color="#32df57",
-            hover_color="#28c94b",
-            width=180,
-            height=45,
-            font=("Arial", 18, "bold"),
-            command=lambda:self.consultar_seleccion(tabla,"a")
-            
-        )
-        btn_actualizar.pack(side="left", padx=20)
-
-        btn_borrar = ctk.CTkButton(
-            botones,
-            text="Borrar reporte",
-            fg_color="#b33c3c",
-            hover_color="#912f2f",
-            width=180,
-            height=45,
-            command=lambda:self.consultar_seleccion(tabla,"b"),
-            font=("Arial", 18, "bold")
-        )
-        btn_borrar.pack(side="left", padx=20)
-        datos_incidentes=funciones_incidentes.incidente.consulta_Tabla(self.usuario[0])
-        tabla.tag_configure("rojo", background="#f6b2b2")
-        tabla.tag_configure("verde", background="#ccffcc")
-        for item in tabla.get_children():
-            tabla.delete(item)
-        for fila in datos_incidentes:
-            # fila ahora = (nombre, edificio, piso, cant_pc)
-            id_incident = fila[0]
-            fecha = fila[1]
-            incidente = fila[2]
-            name = fila[3]
-            building = fila[4]
-            obs_raw = fila[5]  # 0 o 1
-
-            # Transformación
-            observations =  "Process" if obs_raw == 0 else "END"
-           
-            tag = "rojo" if observations == "Process" else "verde"
-
-
-
-            # Insertamos con la observación convertida
-            tabla.insert("", "end", values=(id_incident, fecha, incidente, name, building, observations),tags=(tag,)
-            )
-       
-    def _build_sidebar(self):
-
-        btn_inicio = ctk.CTkButton(
-            self.sidebar,
-            text="Inicio",
-            image=self.img_logo,
-            compound="left",
-            fg_color=constantes.color,
-            hover_color="#3b6b4b",
-            text_color="white",
-            corner_radius=8,
-            font=("Arial",30),
-            command=self.mostrar_dashboard
-        )
-        btn_inicio.pack(padx=12, pady=(30, 20))
-
-        btn_perfil = ctk.CTkButton(
-            self.sidebar,
-            text="Perfil",
-            image=self.img_usuario,
-            compound="left",
-            fg_color=constantes.color,
-            hover_color="#3b6b4b",
-            text_color="white",
-            corner_radius=8,
-            font=("Arial",30),
-            command=self.mostrar_perfil
-        )
-        btn_perfil.pack(padx=12, pady=20)
-
-        btn_labs = ctk.CTkButton(
-            self.sidebar,
-            text="Historial",
-            image=self.img_historial,
-            compound="left",
-            fg_color=constantes.color,
-            hover_color="#3b6b4b",
-            text_color="white",
-            corner_radius=8,
-            font=("Arial",28),
-            command=self.mostrar_laboratorios
-        )
-        btn_labs.pack(padx=12, pady=50)
-
-        btn_salir = ctk.CTkButton(
-            self.sidebar,
-            text="Cerrar Sesión",
-            fg_color="#b33c3c",
-            hover_color="#912f2f",
-            text_color="white",
-            corner_radius=8,
-            font=("Arial",30),
-            command=lambda:interfaz.Vista.mostrar_login(self.ventana)
-        )
-        btn_salir.pack(padx=12, pady=(180, 30))
-
-    def generar_reportes(self, datos):
-
-
-        MAX_CHARS = 150
-
-        # Crear NUEVA ventana independiente
-        nueva = Tk()
-        nueva.title("Reportar incidente")
-        nueva.geometry("500x600")
-        nueva.resizable(False, False)
-
-        scroll = ctk.CTkScrollableFrame(
-            master=nueva,
-            height=600,
-            width=600,
-            fg_color="#ffffff"
-        )
-        scroll.pack(padx=20, pady=20, fill="both", expand=True)
-
-        # Obtener ID del laboratorio
-        id_tupla = laboratorios.laboratorios.buscar_id(datos)
-        id = id_tupla[0]
-
-        # ========= TITULO =========
-        titulo = ctk.CTkLabel(
-            scroll,
-            text="Formulario de reporte",
-            font=("Arial", 22, "bold"),
-            text_color="black"
-        )
-        titulo.pack(pady=15)
-
-        lbl_h2 = ctk.CTkLabel(
-            scroll,
-            text=f"Del laboratorio {id}",
-            font=("Arial", 20),
-            text_color="black"
-        )
-        lbl_h2.pack(pady=2)
-
-        # ========= Nombre =========
-        lbl_h3 = ctk.CTkLabel(
-            scroll,
-            text="Nombre del laboratorio:",
-            font=("Arial", 20),
-            text_color="black"
-        )
-        lbl_h3.pack(pady=1)
-
-        txt_nombre = ctk.CTkEntry(
-            scroll,
-            width=len(datos[0]) * 10,
-            text_color="#000000",
-            corner_radius=5,
-            fg_color="#ffffff"
-        )
-        txt_nombre.pack(pady=5)
-        txt_nombre.insert(0, f"{datos[0]}")
-        txt_nombre.configure(state="readonly")
-
-        # ========= Edificio =========
-        lbl_h4 = ctk.CTkLabel(
-            scroll,
-            text="Edificio:",
-            font=("Arial", 20),
-            text_color="black"
-        )
-        lbl_h4.pack(pady=1)
-
-        txt_edificio = ctk.CTkEntry(
-            scroll,
-            width=len(datos[1]) * 10,
-            text_color="#000000",
-            corner_radius=5,
-            fg_color="#ffffff"
-        )
-        txt_edificio.pack(pady=5)
-        txt_edificio.insert(0, f"{datos[1]}")
-        txt_edificio.configure(state="readonly")
-
-        # ========= Piso =========
-        lbl_h5 = ctk.CTkLabel(
-            scroll,
-            text="Piso:",
-            font=("Arial", 20),
-            text_color="black"
-        )
-        lbl_h5.pack(pady=1)
-
-        txt_piso = ctk.CTkEntry(
-            scroll,
-            width=len(datos[2]) * 10,
-            text_color="#000000",
-            corner_radius=5,
-            fg_color="#ffffff"
-        )
-        txt_piso.pack(pady=5)
-        txt_piso.insert(0, f"{datos[2]}")
-        txt_piso.configure(state="readonly")
-
-        # ========= Fecha =========
-        fecha = date.today().strftime("%Y-%m-%d")
-
-        lbl_h6 = ctk.CTkLabel(
-            scroll,
-            text="Fecha del reporte:",
-            font=("Arial", 20),
-            text_color="black"
-        )
-        lbl_h6.pack(pady=1)
-
-        txt_fecha = ctk.CTkEntry(
-            scroll,
-            width=len(fecha) * 10,
-            text_color="#000000",
-            corner_radius=5,
-            fg_color="#ffffff"
-        )
-        txt_fecha.pack(pady=5)
-        txt_fecha.insert(0, fecha)
-        txt_fecha.configure(state="readonly")
-
-        # ========= Pregunta =========
-        lbl = ctk.CTkLabel(
-            scroll,
-            text="Describe el incidente:",
-            font=("Arial", 16),
-            text_color="#000000"
-        )
-        lbl.pack(pady=5)
-
-        # ========= Contador =========
-        lbl_contador = ctk.CTkLabel(
-            scroll,
-            text=f"0 / {MAX_CHARS} caracteres",
-            text_color="black",
-            font=("Arial", 12)
-        )
-        lbl_contador.pack(pady=5)
-
-        # ========= TextArea =========
-        txt_incidente = ctk.CTkTextbox(
-            scroll,
-            width=420,
-            height=200,
-            corner_radius=10,
-            fg_color="#ffffff",
-            text_color="#000000",
-            border_color="#000000",
-            border_width=4,
-        )
-        txt_incidente.pack(pady=10)
-        txt_incidente.focus()
-
-        # ========= Funciones para límite y contador =========
-        def actualizar_contador(event=None):
-            texto = txt_incidente.get("1.0", "end-1c")
-
-            # Corta el exceso
-            if len(texto) > MAX_CHARS:
-                txt_incidente.delete(f"1.0 + {MAX_CHARS} chars", "end")
-                texto = txt_incidente.get("1.0", "end-1c")
-
-            lbl_contador.configure(
-                text=f"{len(texto)} / {MAX_CHARS} caracteres"
-            )
-
-        def limitar_caracteres(event=None):
-            texto = txt_incidente.get("1.0", "end-1c")
-            if len(texto) == MAX_CHARS:
-                lbl_contador.configure(text_color="red")
-            else:
-                lbl_contador.configure(text_color="black")
-
-            if len(texto) >= MAX_CHARS:
-                return "break"   # bloquea la tecla
-
-        # Bind correctos
-        txt_incidente.bind("<KeyRelease>", actualizar_contador)
-        txt_incidente.bind("<<Paste>>", actualizar_contador)
-        txt_incidente.bind("<Key>", limitar_caracteres)
-            
-        # ========= Botón enviar =========
-        btn_enviar = ctk.CTkButton(
-            scroll,
-            text="Enviar reporte",
-            fg_color="#32df57",
-            hover_color="#28c94b",
-            text_color="white",
-            corner_radius=12,
-            width=180,
-            command=lambda: self.insertar_reporte(
-                nueva,
-                txt_incidente.get("1.0", "end-1c"),
-                id
-            )
-
-        )
-        btn_enviar.pack(pady=15)
-
-
-        nueva.mainloop()
-    
-    def actualizarReporte(self,datos):
-
-        MAX_CHARS = 150
-
-        # Crear NUEVA ventana independiente
-        nueva = Tk()
-        nueva.title("Actualizar incidente")
-        nueva.geometry("500x600")
-        nueva.resizable(False, False)
-
-        scroll = ctk.CTkScrollableFrame(
-            master=nueva,
-            height=600,
-            width=600,
-            fg_color="#ffffff"
-        )
-        scroll.pack(padx=20, pady=20, fill="both", expand=True)
-
-        # Obtener ID del laboratorio
-        id_tupla = laboratorios.laboratorios.buscar_id(datos)
-        id = id_tupla[0]
-
-        # ========= TITULO =========
-        titulo = ctk.CTkLabel(
-            scroll,
-            text="Formulario de reporte",
-            font=("Arial", 22, "bold"),
-            text_color="black"
-        )
-        titulo.pack(pady=15)
-
-        lbl_h2 = ctk.CTkLabel(
-            scroll,
-            text=f"Del laboratorio {id}",
-            font=("Arial", 20),
-            text_color="black"
-        )
-        lbl_h2.pack(pady=2)
-
-        # ========= Nombre =========
-        lbl_h3 = ctk.CTkLabel(
-            scroll,
-            text="Nombre del laboratorio:",
-            font=("Arial", 20),
-            text_color="black"
-        )
-        lbl_h3.pack(pady=1)
-
-        txt_nombre = ctk.CTkEntry(
-            scroll,
-            width=len(datos[0]) * 10,
-            text_color="#000000",
-            corner_radius=5,
-            fg_color="#ffffff"
-        )
-        txt_nombre.pack(pady=5)
-        txt_nombre.insert(0, f"{datos[0]}")
-        txt_nombre.configure(state="readonly")
-
-        # ========= Edificio =========
-        lbl_h4 = ctk.CTkLabel(
-            scroll,
-            text="Edificio:",
-            font=("Arial", 20),
-            text_color="black"
-        )
-        lbl_h4.pack(pady=1)
-
-        txt_edificio = ctk.CTkEntry(
-            scroll,
-            width=len(datos[1]) * 10,
-            text_color="#000000",
-            corner_radius=5,
-            fg_color="#ffffff"
-        )
-        txt_edificio.pack(pady=5)
-        txt_edificio.insert(0, f"{datos[1]}")
-        txt_edificio.configure(state="readonly")
-
-        # ========= Piso =========
-        lbl_h5 = ctk.CTkLabel(
-            scroll,
-            text="Piso:",
-            font=("Arial", 20),
-            text_color="black"
-        )
-        lbl_h5.pack(pady=1)
-
-        txt_piso = ctk.CTkEntry(
-            scroll,
-            width=len(datos[2]) * 10,
-            text_color="#000000",
-            corner_radius=5,
-            fg_color="#ffffff"
-        )
-        txt_piso.pack(pady=5)
-        txt_piso.insert(0, f"{datos[2]}")
-        txt_piso.configure(state="readonly")
-
-        # ========= Fecha =========
-        fecha = date.today().strftime("%Y-%m-%d")
-
-        lbl_h6 = ctk.CTkLabel(
-            scroll,
-            text="Fecha del reporte:",
-            font=("Arial", 20),
-            text_color="black"
-        )
-        lbl_h6.pack(pady=1)
-
-        txt_fecha = ctk.CTkEntry(
-            scroll,
-            width=len(fecha) * 10,
-            text_color="#000000",
-            corner_radius=5,
-            fg_color="#ffffff"
-        )
-        txt_fecha.pack(pady=5)
-        txt_fecha.insert(0, fecha)
-        txt_fecha.configure(state="readonly")
-
-        # ========= Pregunta =========
-        lbl = ctk.CTkLabel(
-            scroll,
-            text="Describe el incidente:",
-            font=("Arial", 16),
-            text_color="#000000"
-        )
-        lbl.pack(pady=5)
-
-        # ========= Contador =========
-        lbl_contador = ctk.CTkLabel(
-            scroll,
-            text=f"0 / {MAX_CHARS} caracteres",
-            text_color="black",
-            font=("Arial", 12)
-        )
-        lbl_contador.pack(pady=5)
-
-        # ========= TextArea =========
-        txt_incidente = ctk.CTkTextbox(
-            scroll,
-            width=420,
-            height=200,
-            corner_radius=10,
-            fg_color="#ffffff",
-            text_color="#000000",
-            border_color="#000000",
-            border_width=4,
-        )
-        txt_incidente.pack(pady=10)
-        txt_incidente.focus()
-
-        # ========= Funciones para límite y contador =========
-        def actualizar_contador(event=None):
-            texto = txt_incidente.get("1.0", "end-1c")
-
-            # Corta el exceso
-            if len(texto) > MAX_CHARS:
-                txt_incidente.delete(f"1.0 + {MAX_CHARS} chars", "end")
-                texto = txt_incidente.get("1.0", "end-1c")
-
-            lbl_contador.configure(
-                text=f"{len(texto)} / {MAX_CHARS} caracteres"
-            )
-
-        def limitar_caracteres(event=None):
-            texto = txt_incidente.get("1.0", "end-1c")
-            if len(texto) == MAX_CHARS:
-                lbl_contador.configure(text_color="red")
-            else:
-                lbl_contador.configure(text_color="black")
-
-            if len(texto) >= MAX_CHARS:
-                return "break"   # bloquea la tecla
-
-        # Bind correctos
-        txt_incidente.bind("<KeyRelease>", actualizar_contador)
-        txt_incidente.bind("<<Paste>>", actualizar_contador)
-        txt_incidente.bind("<Key>", limitar_caracteres)
-            
-        # ========= Botón enviar =========
-        btn_enviar = ctk.CTkButton(
-            scroll,
-            text="Enviar reporte",
-            fg_color="#32df57",
-            hover_color="#28c94b",
-            text_color="white",
-            corner_radius=12,
-            width=180,
-            command=lambda: self.insertar_reporte(
-                nueva,
-                txt_incidente.get("1.0", "end-1c"),
-                id
-            )
-
-        )
-        btn_enviar.pack(pady=15)
-
-
-        nueva.mainloop()
-
-    
-    
-    def consultar_seleccion(self,tabla,op):
-                seleccion = tabla.focus()  # obtiene el ID interno del ítem seleccionado
-
-                if not seleccion:
-                    messagebox.showwarning("Warning", "You must select a laboratory")
-                    return
-
-                datos = tabla.item(seleccion, "values")  # obtiene la tupla de valores
-
-                # datos será algo como: ("Lab A1", "Pesado 1", "2", "35")
-                if op=="g":
-                 self.generar_reportes(datos)
-                elif op=="a":
-                  self.actualizarReporte(datos)
-                elif op=="b":
-                   funciones_incidentes.incidente.borrarIncidente(datos)
-    
-    
-    # =====================================================
-    #   LIMPIAR ÁREA PRINCIPAL  
-    # =====================================================
-
-    def _clear_main(self):
-        for w in self.main.winfo_children():
-            w.destroy()
-
-    def insertar_reporte(self,ventana,txt_incidente,id):
-        exito=funciones_incidentes.incidente.insertar(
-            self.usuario[0],
-                txt_incidente,
-                id
-        )
-        if exito:
-            ventana.destroy()
+        style.theme_use("clam")
+        style.configure("Treeview", background="white", foreground="black", rowheight=35, fieldbackground="white", font=("Roboto", 12))
+        style.configure("Treeview.Heading", background="#E0E0E0", foreground="#333", font=("Roboto", 13, "bold"), relief="flat")
+        style.map("Treeview", background=[("selected", constantes.COLOR_HOVER)])

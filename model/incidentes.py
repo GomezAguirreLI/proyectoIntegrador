@@ -1,156 +1,59 @@
-from conexionBD import *
-from mysql.connector import Error as DbErrorS
-'''
-INSERT INTO usuarios 
-                (primer_nombre, segundo_nombre, apellido_paterno, telefono, email, contrasena) 
-                VALUES (%s, %s, %s, %s, %s, %s)
-
-'''
+from conexionBD import get_conexion
+from mysql.connector import Error as DbError
 
 class incidentes:
     @staticmethod
     def insertar(id_usuario, incidente, id_laboratorio):
         try:
-            '''
-             cursor.execute("INSERT INTO incidentes(id_usuario,incidente,id_laboratorio) VALUES (%s,%s,%s,)",(id_usuario, incidente, id_laboratorio))
-            
-            
-            '''
-            sql_query = """
-                INSERT INTO incidentes(id_usuario,incidente,id_laboratorio) VALUES (%s,%s,%s)
-            """
-            
-            # Los valores (en el orden de la consulta de arriba)
-            valores = (id_usuario, incidente, id_laboratorio)
+            with get_conexion() as (conexion, cursor):
+                sql = "INSERT INTO incidentes (id_usuario, incidente, id_laboratorio, fecha, observaciones) VALUES (%s, %s, %s, NOW(), 0)"
+                cursor.execute(sql, (id_usuario, incidente, id_laboratorio))
+                conexion.commit()
+                return True
+        except: return False
 
-            cursor.execute(sql_query, valores)
-            
-            conexion.commit()
-           
+    @staticmethod
+    def consulta_tabla(id_usuario):
+        try:
+            with get_conexion() as (conexion, cursor):
+                sql = "SELECT * FROM vista_incidentes WHERE id_usuario = %s"
+                cursor.execute(sql, (id_usuario,))
+                return cursor.fetchall()
+        except: return []
 
-            return True
-        except DbErrorS as e:
-            print(f"EL ERROR QUE ME ESTA JODIENDO ES  {e}")
-            return False
+    @staticmethod
+    def borrarIncidente(id_incidente):
+        try:
+            with get_conexion() as (conexion, cursor):
+                cursor.execute("DELETE FROM incidentes WHERE id_incidente = %s", (id_incidente,))
+                conexion.commit()
+                return True
+        except: return False
+
+    @staticmethod
+    def actualizar(id_incidente, nuevo_texto):
+        try:
+            with get_conexion() as (conexion, cursor):
+                cursor.execute("UPDATE incidentes SET incidente = %s WHERE id_incidente = %s", (nuevo_texto, id_incidente))
+                conexion.commit()
+                return True
+        except: return False
+
+    # --- MÉTODOS ADMIN ---
+    @staticmethod
+    def marcar_resuelto(id_incidente):
+        try:
+            with get_conexion() as (conn, cursor):
+                # 1 = Solucionado
+                cursor.execute("UPDATE incidentes SET observaciones = 1 WHERE id_incidente = %s", (id_incidente,))
+                conn.commit()
+                return True
+        except: return False
         
     @staticmethod
-    def consultar_id(id):
+    def consultar_todos_admin():
         try:
-            cursor.execute("SELECT nombre, edificio, piso, cant_pc FROM laboratorios WHERE id_lab=%s",(id,))
-            return cursor.fetchall()
-        except DbErrorS as e:
-            print(f"El error que te jode es {e}")
-            return []
-
-        
-
-    @staticmethod
-    def buscar_id(datos):
-        try:
-            cursor.execute("SELECT id_lab FROM laboratorios WHERE nombre=%s AND edificio=%s AND piso=%s",(datos[0],datos[1],datos[2]))
-            return cursor.fetchone()
-        except:
-            return []
-    
-    @staticmethod
-    def consulta_general():
-        try:
-            cursor.execute("SELECT  * FROM incidentes")
-            return cursor.fetchall()
-        except DbErrorS as e:
-            print(f"El error que te jode es {e}")
-            return []
-        
-    
-    
-    @staticmethod
-    def consulta_tabla(id):
-        try:
-            # La consulta correcta ahora tiene el formato: SELECT ... FROM ... JOIN ...
-            cursor.execute("SELECT  * FROM vista_incidentes WHERE id_usuario=%s;",(id,))
-            return cursor.fetchall()
-        except DbErrorS as e:
-            print(f"El error que te jode es {e}")
-            return []
-        
-
-    @staticmethod
-    def consulta_tabla_lab(id):
-        try:
-            # La consulta correcta ahora tiene el formato: SELECT ... FROM ... JOIN ...
-            cursor.execute("SELECT  * FROM vista_incidentes WHERE id_usuario=%s ORDER BY nombre_laboratorio ASC;",(id,))
-            return cursor.fetchall()
-        except DbErrorS as e:
-            print(f"El error que te jode es {e}")
-            return []
-
-
-
-    @staticmethod
-    def consulta_tabla_edifico(id):
-        try:
-            # La consulta correcta ahora tiene el formato: SELECT ... FROM ... JOIN ...
-            cursor.execute("SELECT  * FROM vista_incidentes WHERE id_usuario=%s ORDER BY edificio ASC;",(id,))
-            return cursor.fetchall()
-        except DbErrorS as e:
-            print(f"El error que te jode es {e}")
-            return []        
-
-
-
-    @staticmethod
-    def consulta_tabla_fehca_Asc(id):
-        try:
-            # La consulta correcta ahora tiene el formato: SELECT ... FROM ... JOIN ...
-            #DESC SERIA EL ULTIMO REPORTE 
-            #ASC SERIA EL PRIMER REPORTE
-            cursor.execute("SELECT  * FROM vista_incidentes WHERE id_usuario=%s ORDER BY fecha ASC;",(id,))
-            return cursor.fetchall()
-        except DbErrorS as e:
-            print(f"El error que te jode es {e}")
-            return [] 
-
-    
-    @staticmethod
-    def consulta_tabla_fehca_Desc(id):
-        try:
-            # La consulta correcta ahora tiene el formato: SELECT ... FROM ... JOIN ...
-            #DESC SERIA EL ULTIMO REPORTE 
-            #ASC SERIA EL PRIMER REPORTE
-            cursor.execute("SELECT  * FROM vista_incidentes WHERE id_usuario=%s ORDER BY fecha DESC;",(id,))
-            return cursor.fetchall()
-        except DbErrorS as e:
-            print(f"El error que te jode es {e}")
-            return []   
-
-
-
-    @staticmethod
-    def consulta_tabla_proceso(id):
-        try:
-            # La consulta correcta ahora tiene el formato: SELECT ... FROM ... JOIN ...
-            #DESC SERIA SOLUCIONADO 
-            #ASC SERIA EN PROCESO
-            cursor.execute("SELECT  * FROM vista_incidentes WHERE id_usuario=%s ORDER BY observaciones ASC;",(id,))
-            return cursor.fetchall()
-        except DbErrorS as e:
-            print(f"El error que te jode es {e}")
-            return []   
-        
-
-    @staticmethod
-    def consulta_tabla_proceso_terminado(id):
-        try:
-            # La consulta correcta ahora tiene el formato: SELECT ... FROM ... JOIN ...
-            #DESC SERIA SOLUCIONADO 
-            #ASC SERIA EN PROCESO
-            cursor.execute("SELECT  * FROM vista_incidentes WHERE id_usuario=%s ORDER BY observaciones DESC;",(id,))
-            return cursor.fetchall()
-        except DbErrorS as e:
-            print(f"El error que te jode es {e}")
-            return []       
-
-            
-
-
-
+            with get_conexion() as (conn, cursor):
+                cursor.execute("SELECT * FROM vista_incidentes ORDER BY fecha DESC")
+                return cursor.fetchall()
+        except: return []
